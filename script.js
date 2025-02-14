@@ -5,14 +5,24 @@ document.addEventListener("DOMContentLoaded", function () {
             let effectiveDate = new Date(this.value);
             
             if (!isNaN(effectiveDate.getTime())) {
-                // Set Expiration Date exactly 1 year ahead (same day and month, next year)
                 let newYear = effectiveDate.getFullYear() + 1;
                 let expirationDate = new Date(effectiveDate);
                 expirationDate.setFullYear(newYear);
-
-                // Format date as YYYY-MM-DD
                 expDateInput.value = expirationDate.toISOString().split("T")[0];
             }
+        });
+    });
+
+    document.querySelectorAll(".applyToAll").forEach(button => {
+        button.addEventListener("click", function () {
+            const type = this.getAttribute("data-type");
+            const firstRowValue = document.querySelector(`.auto-liability .${type}Date`).value;
+            if (!firstRowValue) return;
+            document.querySelectorAll(`.coverage-row .${type}Date`).forEach(input => {
+                if (!input.closest(".auto-liability")) {
+                    input.value = firstRowValue;
+                }
+            });
         });
     });
 
@@ -20,6 +30,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function calculateProRatedAmounts() {
+    let total = 0;
+    
     document.querySelectorAll(".coverage-row").forEach(row => {
         const premium = parseFloat(row.querySelector(".premium").value) || 0;
         const carrierTax = parseFloat(row.querySelector(".carrierTax").value) || 0;
@@ -28,26 +40,19 @@ function calculateProRatedAmounts() {
         const expirationDate = new Date(row.querySelector(".expirationDate").value);
         const endorsementDate = new Date(row.querySelector(".endorsementDate").value);
 
-        if (!premium || isNaN(effectiveDate.getTime()) || isNaN(expirationDate.getTime()) || isNaN(endorsementDate.getTime())) {
-            row.querySelector(".result").innerText = "⚠️ Missing required values!";
+        if (!premium) {
+            row.querySelector(".result").innerText = "";
             return;
         }
 
-        // Calculate the total amount including tax
         const totalAmount = premium + (premium * (carrierTax / 100));
-
-        // Calculate remaining policy days
         const remainingDays = Math.ceil((expirationDate - endorsementDate) / (1000 * 60 * 60 * 24));
         const totalPolicyDays = Math.ceil((expirationDate - effectiveDate) / (1000 * 60 * 60 * 24));
-
-        if (remainingDays < 0 || totalPolicyDays <= 0) {
-            row.querySelector(".result").innerText = "⚠️ Invalid date selection!";
-            return;
-        }
-
-        // Calculate prorated premium
+        
         const proratedPremium = (totalAmount / totalPolicyDays) * remainingDays + carrierFee;
-
         row.querySelector(".result").innerText = `$${proratedPremium.toFixed(2)}`;
+        total += proratedPremium;
     });
+
+    document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
 }
