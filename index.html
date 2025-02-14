@@ -32,28 +32,45 @@
                 </tr>
             </thead>
             <tbody id="coverageContainer">
-                <tr class="coverage-row">
+                <!-- Auto Liability (First Row, Always Fixed) -->
+                <tr class="coverage-row auto-liability">
                     <td>Auto Liability</td>
                     <td><input type="number" class="premium"></td>
                     <td><input type="number" class="carrierTax" min="0" max="100"></td>
                     <td><input type="number" class="carrierFee"></td>
-                    <td><input type="date" class="effectiveDate"></td>
-                    <td><input type="date" class="expirationDate"></td> <!-- Editable Expiration Date -->
-                    <td><input type="date" class="endorsementDate"></td>
+                    <td>
+                        <input type="date" class="effectiveDate">
+                        <button class="applyToAll" data-type="effective">📅 Apply to All</button>
+                    </td>
+                    <td>
+                        <input type="date" class="expirationDate">
+                        <button class="applyToAll" data-type="expiration">📅 Apply to All</button>
+                    </td>
+                    <td>
+                        <input type="date" class="endorsementDate">
+                        <button class="applyToAll" data-type="endorsement">📅 Apply to All</button>
+                    </td>
                     <td class="result"></td>
                 </tr>
+
+                <!-- Other Coverages (Can be expanded in future) -->
                 <tr class="coverage-row">
                     <td>Cargo</td>
                     <td><input type="number" class="premium"></td>
                     <td><input type="number" class="carrierTax" min="0" max="100"></td>
                     <td><input type="number" class="carrierFee"></td>
                     <td><input type="date" class="effectiveDate"></td>
-                    <td><input type="date" class="expirationDate"></td> <!-- Editable Expiration Date -->
+                    <td><input type="date" class="expirationDate"></td>
                     <td><input type="date" class="endorsementDate"></td>
                     <td class="result"></td>
                 </tr>
             </tbody>
         </table>
+
+        <!-- Total Calculation Row -->
+        <div class="total-result">
+            <strong>Total Prorated Amount: <span id="totalResult">$0.00</span></strong>
+        </div>
 
         <button id="calculateBtn">Calculate</button>
     </div>
