@@ -43,7 +43,11 @@ function calculateProRatedAmounts() {
             return;
         }
 
-        const totalAmount = premium + (premium * (carrierTax / 100)) + carrierFee;
+        // Calculate the total amount including carrier fee
+        let totalAmount = premium + carrierFee;
+        // Apply Carrier Tax only if there's a premium
+        totalAmount += totalAmount * (carrierTax / 100);
+
         row.querySelector(".result").innerText = `$${totalAmount.toFixed(2)}`;
         total += totalAmount;
     });
