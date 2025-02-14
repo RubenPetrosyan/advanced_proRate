@@ -55,20 +55,27 @@ function calculateProRatedAmounts() {
     document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
 }
 
-// Formatting for $ and % fields
-document.querySelectorAll(".dollar-input").forEach(input => {
+// 🔹 Restrict input fields to numbers only
+document.querySelectorAll(".dollar-input, .percent-input").forEach(input => {
     input.addEventListener("input", function () {
-        if (this.value && !this.value.includes("$")) {
-            this.value = this.value.replace(/[^\d.]/g, "");
+        let value = this.value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except `.`
+        if (value.split(".").length > 2) value = value.replace(/\.+$/, ""); // Prevent multiple decimal points
+        this.value = value;
+    });
+});
+
+// 🔹 Formatting for $ and % fields
+document.querySelectorAll(".dollar-input").forEach(input => {
+    input.addEventListener("blur", function () {
+        if (this.value) {
             this.value = `$${parseFloat(this.value).toFixed(2)}`;
         }
     });
 });
 
 document.querySelectorAll(".percent-input").forEach(input => {
-    input.addEventListener("input", function () {
-        if (this.value && !this.value.includes("%")) {
-            this.value = this.value.replace(/[^\d.]/g, "");
+    input.addEventListener("blur", function () {
+        if (this.value) {
             this.value = `${parseFloat(this.value).toFixed(2)}%`;
         }
     });
