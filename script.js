@@ -17,10 +17,11 @@ document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".applyToAll").forEach(button => {
     button.addEventListener("click", function () {
       const type = this.getAttribute("data-type"); // effective, expiration, or endorsement
+      // read the date from auto-liability row
       const firstRowValue = document.querySelector(`.auto-liability .${type}Date`).value;
       if (!firstRowValue) return;
+      // apply to all other coverage rows
       document.querySelectorAll(`.coverage-row .${type}Date`).forEach(input => {
-        // Skip the auto-liability row itself
         if (!input.closest(".auto-liability")) {
           input.value = firstRowValue;
         }
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 3) Click "Calculate" to get final amounts
+  // 3) Click "Calculate" to compute final amounts
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 });
 
@@ -37,46 +38,44 @@ function calculateProRatedAmounts() {
   let total = 0;
 
   document.querySelectorAll(".coverage-row").forEach(row => {
-    // Identify fields
     const tivField       = row.querySelector(".tiv");
     const rateField      = row.querySelector(".rate");
     const premiumField   = row.querySelector(".premium");
     const taxField       = row.querySelector(".carrierTax");
     const feeField       = row.querySelector(".carrierFee");
 
-    // Convert to numbers (remove $ or %)
-    const tiv       = tivField    ? parseFloat(tivField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
-    const rate      = rateField   ? parseFloat(rateField.value.replace(/[^\d.]/g, ""))   || 0 : 0;
-    let premium     = premiumField? parseFloat(premiumField.value.replace(/[^\d.]/g, ""))|| 0 : 0;
-    const carrierTax= taxField    ? parseFloat(taxField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
-    const carrierFee= feeField    ? parseFloat(feeField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
+    // Convert to numeric (remove $ or %)
+    const tiv        = tivField    ? parseFloat(tivField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
+    const rate       = rateField   ? parseFloat(rateField.value.replace(/[^\d.]/g, ""))   || 0 : 0;
+    let premium      = premiumField? parseFloat(premiumField.value.replace(/[^\d.]/g, ""))|| 0 : 0;
+    const carrierTax = taxField    ? parseFloat(taxField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
+    const carrierFee = feeField    ? parseFloat(feeField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
 
-    // If TIV > 0, premium = TIV * (rate / 100)
+    // If TIV row => premium = TIV * (rate / 100)
     if (tiv > 0) {
       premium = tiv * (rate / 100);
     }
 
-    // If user didn't enter any premium, skip
+    // If no premium => skip
     if (!premium) {
       row.querySelector(".result").innerText = "";
       return;
     }
 
-    // totalAmount = (premium + carrierFee) + (tax * totalAmount)
+    // totalAmount = (premium + carrierFee) + tax
     let totalAmount = premium + carrierFee;
     totalAmount += totalAmount * (carrierTax / 100);
 
-    // Show result
     row.querySelector(".result").innerText = `$${totalAmount.toFixed(2)}`;
     total += totalAmount;
   });
 
-  // Summation
   document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
 }
 
 // Restrict to numeric & format on blur
 document.querySelectorAll(".dollar-input, .percent-input").forEach(input => {
+
   // A) Remove invalid chars as user types
   input.addEventListener("input", function () {
     // Keep digits & up to one decimal point
@@ -93,7 +92,7 @@ document.querySelectorAll(".dollar-input, .percent-input").forEach(input => {
     this.value = this.value.replace(/[$%]/g, "");
   });
 
-  // C) On blur, parse & reformat
+  // C) On blur => parse & reformat
   input.addEventListener("blur", function() {
     let raw = parseFloat(this.value);
     if (isNaN(raw)) {
