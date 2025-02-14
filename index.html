@@ -13,13 +13,13 @@
     <!-- General Fields -->
     <div class="general-fields">
       <label>Total Broker Fee (USD):
-        <input type="number" id="totalBrokerFee" class="dollar-input">
+        <input type="number" value="0" id="totalBrokerFee" class="dollar-input">
       </label>
       <label>Financed Broker Fee (USD):
-        <input type="number" id="financedBrokerFee" class="dollar-input">
+        <input type="number" value="0" id="financedBrokerFee" class="dollar-input">
       </label>
       <label>Downpayment %:
-        <input type="number" id="downpayment" class="percent-input" min="0" max="100">
+        <input type="number" value="0" id="downpayment" class="percent-input" min="0" max="100">
       </label>
     </div>
 
@@ -42,10 +42,10 @@
         <!-- 1) Auto Liability -->
         <tr class="coverage-row auto-liability">
           <td>Auto Liability</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td>
             <input type="date" class="effectiveDate">
             <div class="apply-btn-container">
@@ -70,10 +70,10 @@
         <!-- 2) General Liability -->
         <tr class="coverage-row">
           <td>General Liability</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -83,10 +83,10 @@
         <!-- 3) Hired Auto -->
         <tr class="coverage-row">
           <td>Hired Auto</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -96,10 +96,10 @@
         <!-- 4) Uninsured Motorist -->
         <tr class="coverage-row">
           <td>Uninsured Motorist</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -109,10 +109,10 @@
         <!-- 5) Trailer Interchange -->
         <tr class="coverage-row">
           <td>Trailer Interchange</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -122,10 +122,10 @@
         <!-- 6) Non-Trucking Liability -->
         <tr class="coverage-row">
           <td>Non-Trucking Liability</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -135,10 +135,10 @@
         <!-- 7) Other -->
         <tr class="coverage-row">
           <td>Other</td>
-          <td><input type="number" class="premium dollar-input"></td>
+          <td><input type="number" value="0" class="premium dollar-input"></td>
           <td>-</td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
@@ -148,10 +148,10 @@
         <!-- 8) Physical Damage (TIV) -->
         <tr class="coverage-row tiv-row">
           <td>Physical Damage (TIV)</td>
-          <td><input type="number" class="tiv dollar-input"></td>
-          <td><input type="number" class="rate percent-input"></td>
-          <td><input type="number" class="carrierTax percent-input"></td>
-          <td><input type="number" class="carrierFee dollar-input"></td>
+          <td><input type="number" value="0" class="tiv dollar-input"></td>
+          <td><input type="number" value="0" class="rate percent-input"></td>
+          <td><input type="number" value="0" class="carrierTax percent-input"></td>
+          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
           <td><input type="date" class="effectiveDate"></td>
           <td><input type="date" class="expirationDate"></td>
           <td><input type="date" class="endorsementDate"></td>
