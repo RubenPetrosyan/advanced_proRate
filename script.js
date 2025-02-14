@@ -50,3 +50,22 @@ function calculateProRatedAmounts() {
 
     document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
 }
+
+// Formatting for $ and % fields
+document.querySelectorAll(".dollar-input").forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.value && !this.value.includes("$")) {
+            this.value = this.value.replace(/[^\d.]/g, "");
+            this.value = `$${parseFloat(this.value).toFixed(2)}`;
+        }
+    });
+});
+
+document.querySelectorAll(".percent-input").forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.value && !this.value.includes("%")) {
+            this.value = this.value.replace(/[^\d.]/g, "");
+            this.value = `${parseFloat(this.value).toFixed(2)}%`;
+        }
+    });
+});
