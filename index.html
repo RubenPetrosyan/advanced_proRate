@@ -1,63 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Truck Insurance ProRate Calculator</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Truck Insurance ProRate Calculator</h1>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".effectiveDate").forEach(input => {
+        input.addEventListener("change", function () {
+            const expDateInput = this.closest(".coverage-row").querySelector(".expirationDate");
+            let effectiveDate = new Date(this.value);
+            
+            if (!isNaN(effectiveDate.getTime())) {
+                // Set Expiration Date exactly 1 year ahead (same day and month)
+                let newYear = effectiveDate.getFullYear() + 1;
+                let expirationDate = new Date(effectiveDate);
+                expirationDate.setFullYear(newYear);
 
-        <!-- General Fields -->
-        <div class="general-fields">
-            <label>Total Broker Fee (USD): <input type="number" id="totalBrokerFee"></label>
-            <label>Financed Broker Fee (USD): <input type="number" id="financedBrokerFee"></label>
-            <label>Downpayment %: <input type="number" id="downpayment" min="0" max="100"></label>
-        </div>
+                // Format date as YYYY-MM-DD
+                expDateInput.value = expirationDate.toISOString().split("T")[0];
+            }
+        });
+    });
 
-        <!-- Coverage Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Coverage</th>
-                    <th>Premium (USD)</th>
-                    <th>Carrier Tax %</th>
-                    <th>Carrier Fee (USD)</th>
-                    <th>Effective Date</th>
-                    <th>Expiration Date</th>
-                    <th><strong>Endorsement Date</strong></th>
-                    <th>Result</th>
-                </tr>
-            </thead>
-            <tbody id="coverageContainer">
-                <tr class="coverage-row">
-                    <td>Auto Liability</td>
-                    <td><input type="number" class="premium"></td>
-                    <td><input type="number" class="carrierTax" min="0" max="100"></td>
-                    <td><input type="number" class="carrierFee"></td>
-                    <td><input type="date" class="effectiveDate"></td>
-                    <td><input type="date" class="expirationDate" readonly></td>
-                    <td><input type="date" class="endorsementDate"></td>
-                    <td class="result"></td>
-                </tr>
-                <tr class="coverage-row">
-                    <td>Cargo</td>
-                    <td><input type="number" class="premium"></td>
-                    <td><input type="number" class="carrierTax" min="0" max="100"></td>
-                    <td><input type="number" class="carrierFee"></td>
-                    <td><input type="date" class="effectiveDate"></td>
-                    <td><input type="date" class="expirationDate" readonly></td>
-                    <td><input type="date" class="endorsementDate"></td>
-                    <td class="result"></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <button id="calculateBtn">Calculate</button>
-    </div>
-
-    <script src="script.js"></script>
-</body>
-</html>
+    document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
+});
