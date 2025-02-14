@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let effectiveDate = new Date(this.value);
             
             if (!isNaN(effectiveDate.getTime())) {
-                // Set Expiration Date exactly 1 year ahead (same day and month)
+                // Set Expiration Date exactly 1 year ahead (same day and month, next year)
                 let newYear = effectiveDate.getFullYear() + 1;
                 let expirationDate = new Date(effectiveDate);
                 expirationDate.setFullYear(newYear);
@@ -18,11 +18,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 });
-
-
-function isLeapYear(year) {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-}
 
 function calculateProRatedAmounts() {
     document.querySelectorAll(".coverage-row").forEach(row => {
