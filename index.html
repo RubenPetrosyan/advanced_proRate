@@ -1,174 +1,109 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Truck Insurance ProRate Calculator</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="container">
-    <h1>Truck Insurance ProRate Calculator</h1>
+document.addEventListener("DOMContentLoaded", function () {
+  // 1) Auto-fill Expiration Date (+1 year)
+  document.querySelectorAll(".effectiveDate").forEach(input => {
+    input.addEventListener("change", function () {
+      const expDateInput = this.closest(".coverage-row").querySelector(".expirationDate");
+      let effectiveDate = new Date(this.value);
+      if (!isNaN(effectiveDate.getTime())) {
+        let newYear = effectiveDate.getFullYear() + 1;
+        let expirationDate = new Date(effectiveDate);
+        expirationDate.setFullYear(newYear);
+        expDateInput.value = expirationDate.toISOString().split("T")[0];
+      }
+    });
+  });
 
-    <!-- General Fields -->
-    <div class="general-fields">
-      <label>Total Broker Fee (USD):
-        <input type="number" value="0" id="totalBrokerFee" class="dollar-input">
-      </label>
-      <label>Financed Broker Fee (USD):
-        <input type="number" value="0" id="financedBrokerFee" class="dollar-input">
-      </label>
-      <label>Downpayment %:
-        <input type="number" value="0" id="downpayment" class="percent-input" min="0" max="100">
-      </label>
-    </div>
+  // 2) "Apply to All" for dates from Auto Liability
+  document.querySelectorAll(".applyToAll").forEach(button => {
+    button.addEventListener("click", function () {
+      const type = this.getAttribute("data-type"); // effective, expiration, or endorsement
+      const firstRowValue = document.querySelector(`.auto-liability .${type}Date`).value;
+      if (!firstRowValue) return;
+      document.querySelectorAll(`.coverage-row .${type}Date`).forEach(input => {
+        if (!input.closest(".auto-liability")) {
+          input.value = firstRowValue;
+        }
+      });
+    });
+  });
 
-    <!-- Coverage Table -->
-    <table>
-      <thead>
-        <tr>
-          <th>Coverage</th>
-          <th>Premium</th>
-          <th>Rate %</th>
-          <th>Carrier Tax %</th>
-          <th>Carrier Fee (USD)</th>
-          <th>Effective Date</th>
-          <th>Expiration Date</th>
-          <th><strong>Endorsement Date</strong></th>
-          <th>Result</th>
-        </tr>
-      </thead>
-      <tbody id="coverageContainer">
-        <!-- 1) Auto Liability -->
-        <tr class="coverage-row auto-liability">
-          <td>Auto Liability</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td>
-            <input type="date" class="effectiveDate">
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="effective">📅 Apply to All</button>
-            </div>
-          </td>
-          <td>
-            <input type="date" class="expirationDate">
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="expiration">📅 Apply to All</button>
-            </div>
-          </td>
-          <td>
-            <input type="date" class="endorsementDate">
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="endorsement">📅 Apply to All</button>
-            </div>
-          </td>
-          <td class="result"></td>
-        </tr>
+  // 3) Calculate on click
+  document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 
-        <!-- 2) General Liability -->
-        <tr class="coverage-row">
-          <td>General Liability</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+  // 4) Enforce numeric constraints & format on blur
+  setupNumericFields();
+});
 
-        <!-- 3) Hired Auto -->
-        <tr class="coverage-row">
-          <td>Hired Auto</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+// Main Calculation
+function calculateProRatedAmounts() {
+  let total = 0;
 
-        <!-- 4) Uninsured Motorist -->
-        <tr class="coverage-row">
-          <td>Uninsured Motorist</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+  document.querySelectorAll(".coverage-row").forEach(row => {
+    const tivField       = row.querySelector(".tiv");
+    const rateField      = row.querySelector(".rate");
+    const premiumField   = row.querySelector(".premium");
+    const taxField       = row.querySelector(".carrierTax");
+    const feeField       = row.querySelector(".carrierFee");
 
-        <!-- 5) Trailer Interchange -->
-        <tr class="coverage-row">
-          <td>Trailer Interchange</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+    // Convert to numeric (remove $ or % if any got forced in)
+    const tiv        = tivField    ? parseFloat(tivField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
+    const rate       = rateField   ? parseFloat(rateField.value.replace(/[^\d.]/g, ""))   || 0 : 0;
+    let premium      = premiumField? parseFloat(premiumField.value.replace(/[^\d.]/g, ""))|| 0 : 0;
+    const carrierTax = taxField    ? parseFloat(taxField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
+    const carrierFee = feeField    ? parseFloat(feeField.value.replace(/[^\d.]/g, ""))    || 0 : 0;
 
-        <!-- 6) Non-Trucking Liability -->
-        <tr class="coverage-row">
-          <td>Non-Trucking Liability</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+    // If TIV coverage => premium = TIV * (rate / 100)
+    if (tiv > 0) {
+      premium = tiv * (rate / 100);
+    }
 
-        <!-- 7) Other -->
-        <tr class="coverage-row">
-          <td>Other</td>
-          <td><input type="number" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
+    if (!premium) {
+      row.querySelector(".result").innerText = "";
+      return; // skip if no premium
+    }
 
-        <!-- 8) Physical Damage (TIV) -->
-        <tr class="coverage-row tiv-row">
-          <td>Physical Damage (TIV)</td>
-          <td><input type="number" value="0" class="tiv dollar-input"></td>
-          <td><input type="number" value="0" class="rate percent-input"></td>
-          <td><input type="number" value="0" class="carrierTax percent-input"></td>
-          <td><input type="number" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
-          <td class="result"></td>
-        </tr>
-      </tbody>
-    </table>
+    // totalAmount = (premium + carrierFee) + tax
+    let totalAmount = premium + carrierFee;
+    totalAmount += totalAmount * (carrierTax / 100);
 
-    <div class="total-result">
-      <strong>Total Prorated Amount:
-        <span id="totalResult">$0.00</span>
-      </strong>
-    </div>
+    row.querySelector(".result").innerText = `$${totalAmount.toFixed(2)}`;
+    total += totalAmount;
+  });
 
-    <button id="calculateBtn">Calculate</button>
-  </div>
+  document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
+}
 
-  <script src="script.js"></script>
-</body>
-</html>
+// Numeric Fields => type number + auto-format on blur
+function setupNumericFields() {
+  document.querySelectorAll(".dollar-input, .percent-input").forEach(input => {
+
+    // A) Clean input (only digits & dot) as user types
+    input.addEventListener("input", function () {
+      this.value = this.value.replace(/[^0-9.]/g, "");
+      // Ensure only one dot
+      const parts = this.value.split(".");
+      if (parts.length > 2) {
+        this.value = parts[0] + "." + parts.slice(1).join("");
+      }
+    });
+
+    // B) On focus => remove $/% from display
+    input.addEventListener("focus", function() {
+      this.value = this.value.replace(/[$%]/g, "");
+    });
+
+    // C) On blur => parse to float & reformat
+    input.addEventListener("blur", function() {
+      let raw = parseFloat(this.value);
+      if (isNaN(raw)) {
+        // If user typed nothing valid => default to 0
+        raw = 0;
+      }
+      if (this.classList.contains("dollar-input")) {
+        this.value = `$${raw.toFixed(2)}`;
+      } else if (this.classList.contains("percent-input")) {
+        this.value = `${raw.toFixed(2)}%`;
+      }
+    });
+  });
+}
