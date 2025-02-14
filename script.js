@@ -37,13 +37,13 @@ function calculateProRatedAmounts() {
         const premium = tiv > 0 ? (tiv * rate / 100) : parseFloat(row.querySelector(".premium")?.value) || 0;
         const carrierTax = parseFloat(row.querySelector(".carrierTax")?.value) || 0;
         const carrierFee = parseFloat(row.querySelector(".carrierFee")?.value) || 0;
-        
+
         if (!premium) {
             row.querySelector(".result").innerText = "";
             return;
         }
 
-        const totalAmount = premium + (premium * (carrierTax / 100));
+        const totalAmount = premium + (premium * (carrierTax / 100)) + carrierFee;
         row.querySelector(".result").innerText = `$${totalAmount.toFixed(2)}`;
         total += totalAmount;
     });
