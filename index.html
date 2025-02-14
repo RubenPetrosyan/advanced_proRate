@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Insurance ProRate Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Truck Insurance ProRate Calculator</h1>
+
+        <!-- General Fields -->
+        <div class="general-fields">
+            <label>Total Broker Fee (USD): <input type="number" id="totalBrokerFee"></label>
+            <label>Financed Portion of Broker Fee (USD): <input type="number" id="financedBrokerFee"></label>
+            <label>Downpayment %: <input type="number" id="downpayment" min="0" max="100"></label>
+        </div>
+
+        <!-- Coverage Rows -->
+        <div id="coverageContainer">
+            <div class="coverage-row">
+                <h2>Auto Liability</h2>
+                <label>Premium Amount (USD): <input type="number" class="premium"></label>
+                <label>Carrier Tax %: <input type="number" class="carrierTax" min="0" max="100"></label>
+                <label>Carrier Fee (USD): <input type="number" class="carrierFee"></label>
+                <label>Effective Date: <input type="date" class="effectiveDate"></label>
+                <label>Expiration Date: <input type="date" class="expirationDate" readonly></label>
+                <label><strong>Endorsement Date:</strong> <input type="date" class="endorsementDate"></label>
+                <span class="result"></span>
+            </div>
+            <div class="coverage-row">
+                <h2>Cargo</h2>
+                <label>Premium Amount (USD): <input type="number" class="premium"></label>
+                <label>Carrier Tax %: <input type="number" class="carrierTax" min="0" max="100"></label>
+                <label>Carrier Fee (USD): <input type="number" class="carrierFee"></label>
+                <label>Effective Date: <input type="date" class="effectiveDate"></label>
+                <label>Expiration Date: <input type="date" class="expirationDate" readonly></label>
+                <label><strong>Endorsement Date:</strong> <input type="date" class="endorsementDate"></label>
+                <span class="result"></span>
+            </div>
+        </div>
+
+        <button id="calculateBtn">Calculate</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
