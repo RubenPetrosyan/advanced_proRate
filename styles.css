@@ -57,10 +57,6 @@ input {
     text-align: center;
 }
 
-input[readonly] {
-    background: #e0e0e0;
-}
-
 button {
     width: 100%;
     padding: 10px;
