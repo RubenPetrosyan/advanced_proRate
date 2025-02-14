@@ -46,6 +46,6 @@ function calculateProRatedAmounts() {
         // Calculate prorated premium
         const proratedPremium = (totalAmount / totalPolicyDays) * remainingDays + carrierFee;
 
-        row.querySelector(".result").innerText = `Prorated Amount: $${proratedPremium.toFixed(2)}`;
+        row.querySelector(".result").innerText = `$${proratedPremium.toFixed(2)}`;
     });
 }
