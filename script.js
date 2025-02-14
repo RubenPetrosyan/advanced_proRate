@@ -3,15 +3,22 @@ document.addEventListener("DOMContentLoaded", function () {
         input.addEventListener("change", function () {
             const expDateInput = this.closest(".coverage-row").querySelector(".expirationDate");
             let effectiveDate = new Date(this.value);
+            
             if (!isNaN(effectiveDate.getTime())) {
-                effectiveDate.setFullYear(effectiveDate.getFullYear() + (isLeapYear(effectiveDate.getFullYear()) ? 366 : 365));
-                expDateInput.value = effectiveDate.toISOString().split("T")[0];
+                // Set Expiration Date exactly 1 year ahead (same day and month)
+                let newYear = effectiveDate.getFullYear() + 1;
+                let expirationDate = new Date(effectiveDate);
+                expirationDate.setFullYear(newYear);
+
+                // Format date as YYYY-MM-DD
+                expDateInput.value = expirationDate.toISOString().split("T")[0];
             }
         });
     });
 
     document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 });
+
 
 function isLeapYear(year) {
     return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
