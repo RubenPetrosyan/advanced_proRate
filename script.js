@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // Auto-fill expiration date (1 year ahead)
     document.querySelectorAll(".effectiveDate").forEach(input => {
         input.addEventListener("change", function () {
             const expDateInput = this.closest(".coverage-row").querySelector(".expirationDate");
@@ -12,6 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Apply date values to all rows
     document.querySelectorAll(".applyToAll").forEach(button => {
         button.addEventListener("click", function () {
             const type = this.getAttribute("data-type");
@@ -25,27 +27,26 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Calculate ProRated Amounts
     document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 });
 
 function calculateProRatedAmounts() {
     let total = 0;
-    
+
     document.querySelectorAll(".coverage-row").forEach(row => {
-        const tiv = parseFloat(row.querySelector(".tiv")?.value) || 0;
-        const rate = parseFloat(row.querySelector(".rate")?.value) || 0;
-        const premium = tiv > 0 ? (tiv * rate / 100) : parseFloat(row.querySelector(".premium")?.value) || 0;
-        const carrierTax = parseFloat(row.querySelector(".carrierTax")?.value) || 0;
-        const carrierFee = parseFloat(row.querySelector(".carrierFee")?.value) || 0;
+        const tiv = parseFloat(row.querySelector(".tiv")?.value.replace(/[$,]/g, "")) || 0;
+        const rate = parseFloat(row.querySelector(".rate")?.value.replace(/[%]/g, "")) || 0;
+        const premium = tiv > 0 ? (tiv * rate / 100) : parseFloat(row.querySelector(".premium")?.value.replace(/[$,]/g, "")) || 0;
+        const carrierTax = parseFloat(row.querySelector(".carrierTax")?.value.replace(/[%]/g, "")) || 0;
+        const carrierFee = parseFloat(row.querySelector(".carrierFee")?.value.replace(/[$,]/g, "")) || 0;
 
         if (!premium) {
             row.querySelector(".result").innerText = "";
             return;
         }
 
-        // Calculate the total amount including carrier fee
         let totalAmount = premium + carrierFee;
-        // Apply Carrier Tax only if there's a premium
         totalAmount += totalAmount * (carrierTax / 100);
 
         row.querySelector(".result").innerText = `$${totalAmount.toFixed(2)}`;
@@ -55,28 +56,25 @@ function calculateProRatedAmounts() {
     document.getElementById("totalResult").innerText = `$${total.toFixed(2)}`;
 }
 
-// 🔹 Restrict input fields to numbers only
+// 🔹 Prevent values from disappearing while typing
 document.querySelectorAll(".dollar-input, .percent-input").forEach(input => {
     input.addEventListener("input", function () {
-        let value = this.value.replace(/[^0-9.]/g, ""); // Remove non-numeric characters except `.`
-        if (value.split(".").length > 2) value = value.replace(/\.+$/, ""); // Prevent multiple decimal points
-        this.value = value;
+        let value = this.value.replace(/[^0-9.]/g, "");
+        if (value.split(".").length > 2) value = value.replace(/\.+$/, "");
+        this.setAttribute("data-raw", value);
     });
-});
 
-// 🔹 Formatting for $ and % fields
-document.querySelectorAll(".dollar-input").forEach(input => {
     input.addEventListener("blur", function () {
-        if (this.value) {
-            this.value = `$${parseFloat(this.value).toFixed(2)}`;
+        let rawValue = this.getAttribute("data-raw") || this.value;
+        if (this.classList.contains("dollar-input") && rawValue) {
+            this.value = `$${parseFloat(rawValue).toFixed(2)}`;
+        } else if (this.classList.contains("percent-input") && rawValue) {
+            this.value = `${parseFloat(rawValue).toFixed(2)}%`;
         }
     });
-});
 
-document.querySelectorAll(".percent-input").forEach(input => {
-    input.addEventListener("blur", function () {
-        if (this.value) {
-            this.value = `${parseFloat(this.value).toFixed(2)}%`;
-        }
+    input.addEventListener("focus", function () {
+        let rawValue = this.getAttribute("data-raw") || this.value;
+        this.value = rawValue.replace(/[$%]/g, "");
     });
 });
