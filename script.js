@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // 3) Calculate on click
+  // 3) On calculate
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
 
   // 4) Setup numeric constraints
@@ -35,10 +35,9 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function calculateProRatedAmounts() {
-  // 1) Sum coverage row amounts
+  // 1) coverage row proration => coverageSum
   let coverageSum = 0;
 
-  // coverage row logic => proration
   document.querySelectorAll(".coverage-row").forEach(row => {
     const tivField     = row.querySelector(".tiv");
     const rateField    = row.querySelector(".rate");
@@ -46,6 +45,7 @@ function calculateProRatedAmounts() {
     const taxField     = row.querySelector(".carrierTax");
     const feeField     = row.querySelector(".carrierFee");
 
+    // Read numeric inputs (strip $/%)
     const tiv        = tivField     ? parseFloat(stripNonNumeric(tivField.value))     || 0 : 0;
     const rate       = rateField    ? parseFloat(stripNonNumeric(rateField.value))    || 0 : 0;
     let premium      = premiumField ? parseFloat(stripNonNumeric(premiumField.value)) || 0 : 0;
@@ -57,12 +57,13 @@ function calculateProRatedAmounts() {
       premium = tiv * (rate / 100);
     }
 
+    // If user typed no premium => skip
     if (!premium) {
       row.querySelector(".result").innerText = "";
-      return; 
+      return;
     }
 
-    // date proration
+    // Prorate by dates
     const effVal = row.querySelector(".effectiveDate")?.value;
     const expVal = row.querySelector(".expirationDate")?.value;
     const endVal = row.querySelector(".endorsementDate")?.value;
@@ -70,6 +71,7 @@ function calculateProRatedAmounts() {
     let effDate = new Date(effVal || "");
     let expDate = new Date(expVal || "");
     let endDate = new Date(endVal || "");
+
     if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) {
       row.querySelector(".result").innerText = "";
       return;
@@ -82,10 +84,14 @@ function calculateProRatedAmounts() {
       return;
     }
 
+    // prorated portion (before fee/tax)
     let prorated = (premium / totalDays) * remainDays;
-    let finalAmt = prorated + carrierFee;
-    finalAmt += finalAmt * (carrierTax / 100);
 
+    // 2) TAX only the coverage, THEN add fee
+    // finalAmt = (prorated * (1 + tax%)) + fee
+    let finalAmt = prorated * (1 + carrierTax / 100) + carrierFee;
+
+    // show row result
     row.querySelector(".result").innerText = `$${finalAmt.toFixed(2)}`;
     coverageSum += finalAmt;
   });
@@ -93,9 +99,8 @@ function calculateProRatedAmounts() {
   // 2) coverageSum => "Total Prorated Amount"
   document.getElementById("totalResult").innerText = `$${coverageSum.toFixed(2)}`;
 
-  // Now the new lines:
-
-  // a) DownPayment => if user typed 0 => interpret 100%
+  // 3) Additional result lines
+  // a) DownPayment => if 0 => interpret 100%
   let dpPct = parseFloat(stripNonNumeric(document.getElementById("downpayment").value)) || 0;
   if (dpPct <= 0) dpPct = 100;
   let dpRatio = dpPct / 100.0;
@@ -106,72 +111,82 @@ function calculateProRatedAmounts() {
   const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
   const finB   = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value))|| 0;
   let earnedBF = totalB - finB;
-  if (earnedBF < 0) earnedBF = 0; // avoid negative
+  if (earnedBF < 0) earnedBF = 0;
   document.getElementById("earnedBrokerFee").innerText = `$${earnedBF.toFixed(2)}`;
 
-  // c) ToBeEarned => downPaymentDollar + earnedBF
+  // c) ToBeEarned => downPayment + earnedBF
   const toBeEarned = downPaymentDollar + earnedBF;
   document.getElementById("toBeEarned").innerText = `$${toBeEarned.toFixed(2)}`;
 
-  // d) Financed Amount => (coverageSum - downPaymentDollar) + financedBrokerFee
+  // d) Financed Amount => (coverageSum - downPayment) + financedBrokerFee
   let financedAmt = (coverageSum - downPaymentDollar) + finB;
-  if (financedAmt < 0) financedAmt = 0; 
+  if (financedAmt < 0) financedAmt = 0;
   document.getElementById("financedAmount").innerText = `$${financedAmt.toFixed(2)}`;
 
-  // e) Monthly Payment => financedAmt is the "loan amount"
+  // e) monthlyPayment => financedAmt w/ APR% & #Payments
   let aprRaw = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
-  let nPays  = parseInt(stripNonNumeric(document.getElementById("numPayments").value))||1;
-  if (nPays<1) nPays=1;
-  if (nPays>10) nPays=10;
+  let nPays  = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
+  if (nPays < 1) nPays = 1;
+  if (nPays > 10) nPays = 10;
 
-  let monthlyPay=0;
-  if (aprRaw===0) {
+  let monthlyPay = 0;
+  if (aprRaw === 0) {
     // simple division
     monthlyPay = financedAmt / nPays;
   } else {
     // standard loan formula
-    let monthlyRate = (aprRaw/100)/12;
-    monthlyPay = (monthlyRate * financedAmt)/(1 - Math.pow(1+monthlyRate,-nPays));
+    let monthlyRate = (aprRaw / 100) / 12;
+    monthlyPay = (monthlyRate * financedAmt) /
+      (1 - Math.pow(1 + monthlyRate, -nPays));
   }
   document.getElementById("monthlyPayment").innerText = `$${monthlyPay.toFixed(2)}`;
 }
 
+// Utility => day difference in days
 function daysBetween(d1, d2) {
-  const MS_PER_DAY=1000*60*60*24;
-  return Math.ceil((d2 - d1)/MS_PER_DAY);
+  const MS_PER_DAY = 1000 * 60 * 60 * 24;
+  return Math.ceil((d2 - d1) / MS_PER_DAY);
 }
 
+// Restrict input => no vanish
 function stripNonNumeric(str) {
-  return str.replace(/[^0-9.]/g,"");
+  return str.replace(/[^0-9.]/g, "");
 }
 
 function setupNumericFields() {
   document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
-    // remove invalid chars
+    // A) Clean input on typing => only digits & single dot
     input.addEventListener("input", function() {
-      let raw=stripNonNumeric(this.value);
-      const parts=raw.split(".");
-      if (parts.length>2) {
-        raw=parts[0]+"."+parts.slice(1).join("");
+      let raw = stripNonNumeric(this.value);
+      const parts = raw.split(".");
+      if (parts.length > 2) {
+        raw = parts[0] + "." + parts.slice(1).join("");
       }
-      this.value=raw;
+      this.value = raw;
     });
-    // focus => remove $/% => user sees raw
-    input.addEventListener("focus",function(){
-      this.value=stripNonNumeric(this.value);
+
+    // B) On focus => remove $ or %
+    input.addEventListener("focus", function() {
+      this.value = stripNonNumeric(this.value);
     });
-    // blur => parse => reformat
-    input.addEventListener("blur",function(){
-      let num=parseFloat(stripNonNumeric(this.value));
-      if(isNaN(num))num=0;
-      if(this.classList.contains("dollar-input")){
-        this.value=num.toFixed(2);
-      }else if(this.classList.contains("percent-input")){
-        this.value=num.toFixed(2);
-      }else if(this.classList.contains("numPay-input")){
-        if(num<1)num=1;
-        if(num>10)num=10;
-        this.value=String(Math.round(num));
+
+    // C) On blur => parse => reformat
+    input.addEventListener("blur", function() {
+      let num = parseFloat(stripNonNumeric(this.value));
+      if (isNaN(num)) num = 0;
+      // Dollar => 2 decimals
+      if (this.classList.contains("dollar-input")) {
+        this.value = num.toFixed(2);
+      }
+      // Percent => 2 decimals
+      else if (this.classList.contains("percent-input")) {
+        this.value = num.toFixed(2);
+      }
+      // #Payments => integer between 1..10
+      else if (this.classList.contains("numPay-input")) {
+        if (num < 1) num = 1;
+        if (num > 10) num = 10;
+        this.value = String(Math.round(num));
       }
     });
   });
