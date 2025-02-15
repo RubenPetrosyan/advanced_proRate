@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function () {
 function calculateProRatedAmounts() {
   let coverageTotal = 0;
 
-  // 1) Sum coverage proration
+  // coverage row logic => sum
   document.querySelectorAll(".coverage-row").forEach(row => {
     const tivField     = row.querySelector(".tiv");
     const rateField    = row.querySelector(".rate");
@@ -56,13 +56,13 @@ function calculateProRatedAmounts() {
       premium = tiv * (rate / 100);
     }
 
-    // If no premium => skip
+    // if no premium => skip
     if (!premium) {
       row.querySelector(".result").innerText = "";
       return;
     }
 
-    // Prorate by dates
+    // date-based proration
     const effVal = row.querySelector(".effectiveDate")?.value;
     const expVal = row.querySelector(".expirationDate")?.value;
     const endVal = row.querySelector(".endorsementDate")?.value;
@@ -76,52 +76,49 @@ function calculateProRatedAmounts() {
       return;
     }
 
-    // Days calc
     let totalDays = daysBetween(effDate, expDate);
-    let remainDays = daysBetween(endDate, expDate);
+    let remainDays= daysBetween(endDate, expDate);
 
     if (totalDays <= 0) {
       row.querySelector(".result").innerText = "Invalid dates!";
       return;
     }
 
+    // prorated
     let prorated = (premium / totalDays) * remainDays;
 
-    // Add carrier fee => then tax
-    let finalAmount = prorated + carrierFee;
-    finalAmount += finalAmount * (carrierTax / 100);
+    // add fee => then tax
+    let finalAmt = prorated + carrierFee;
+    finalAmt += finalAmt * (carrierTax / 100);
 
-    row.querySelector(".result").innerText = `$${finalAmount.toFixed(2)}`;
-    coverageTotal += finalAmount;
+    row.querySelector(".result").innerText = `$${finalAmt.toFixed(2)}`;
+    coverageTotal += finalAmt;
   });
 
-  // 2) Add Broker Fee
+  // add Broker Fee to coverage total
   const brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
   let preliminaryTotal = coverageTotal + brokerFee;
 
-  // 3) Show "Total Prorated Amount"
+  // show total prorated
   document.getElementById("totalResult").innerText = `$${preliminaryTotal.toFixed(2)}`;
 
-  // 4) Calculate Monthly Payment => APR & #Payments
+  // monthly payment => using # of payments (1..10) & APR
   let aprRaw  = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
   let numPays = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
-
-  // Restrict numPays to [1..10]
   if (numPays < 1) numPays = 1;
   if (numPays > 10) numPays = 10;
 
   let monthlyPay = 0;
-  // If aprRaw == 0 => simple monthly
   if (aprRaw === 0) {
+    // simple division
     monthlyPay = preliminaryTotal / numPays;
   } else {
-    // standard loan formula => APR is annual => monthlyRate = (aprRaw / 100)/12
+    // standard loan formula
     let monthlyRate = (aprRaw / 100) / 12;
     monthlyPay = (monthlyRate * preliminaryTotal) /
       (1 - Math.pow(1 + monthlyRate, -numPays));
   }
 
-  // 5) Show "Monthly Payment"
   document.getElementById("monthlyPayment").innerText = `$${monthlyPay.toFixed(2)}`;
 }
 
@@ -130,16 +127,15 @@ function daysBetween(d1, d2) {
   return Math.ceil((d2 - d1) / MS_PER_DAY);
 }
 
-// Convert to numeric
 function stripNonNumeric(str) {
   return str.replace(/[^0-9.]/g, "");
 }
 
 function setupNumericFields() {
-  // a) Add numeric logic to all .dollar-input, .percent-input, plus #numPayments
+  // handle .dollar-input, .percent-input, and .numPay-input
   document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
 
-    // A) Clean typed input => only digits & one dot
+    // remove invalid chars as user types
     input.addEventListener("input", function() {
       let raw = stripNonNumeric(this.value);
       const parts = raw.split(".");
@@ -149,24 +145,26 @@ function setupNumericFields() {
       this.value = raw;
     });
 
-    // B) On focus => remove $ or %
+    // on focus => remove $ or %
     input.addEventListener("focus", function() {
       this.value = stripNonNumeric(this.value);
     });
 
-    // C) On blur => format if needed
+    // on blur => parse => reformat if needed
     input.addEventListener("blur", function() {
-      let num = parseFloat(stripNonNumeric(this.value)) || 0;
-      // if it's a dollar or percent => do standard format
+      let num = parseFloat(stripNonNumeric(this.value));
+      if (isNaN(num)) num = 0;
       if (this.classList.contains("dollar-input")) {
+        // keep as decimal
         this.value = num.toFixed(2);
       } else if (this.classList.contains("percent-input")) {
+        // keep as decimal
         this.value = num.toFixed(2);
       } else if (this.classList.contains("numPay-input")) {
-        // must be 1..10
+        // 1..10
         if (num < 1) num = 1;
         if (num > 10) num = 10;
-        this.value = num.toFixed(0); // integer
+        this.value = String(Math.round(num));
       }
     });
   });
