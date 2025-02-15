@@ -21,7 +21,6 @@
       <label>Downpayment %:
         <input type="text" value="0" id="downpayment" class="percent-input">
       </label>
-      <!-- New Fields -->
       <label>APR %:
         <input type="text" value="0" id="apr" class="percent-input">
       </label>
@@ -30,7 +29,7 @@
       </label>
     </div>
 
-    <!-- Coverage Table -->
+    <!-- Coverage Table (all 8 rows) -->
     <table>
       <thead>
         <tr>
@@ -167,15 +166,33 @@
       </tbody>
     </table>
 
-    <!-- Final Totals Section -->
+    <!-- Final Results Section -->
     <div class="total-result">
-      <strong>Total Prorated Amount:
-        <span id="totalResult">$0.00</span>
-      </strong>
-      <br>
-      <!-- The new monthly payment line -->
+      <strong>DownPayment:
+        <span id="downPaymentDollar">$0.00</span>
+      </strong><br>
+
+      <strong>Earned Broker Fee:
+        <span id="earnedBrokerFee">$0.00</span>
+      </strong><br>
+
+      <strong>To Be Earned:
+        <span id="toBeEarned">$0.00</span>
+      </strong><br>
+
+      <strong>Financed Amount:
+        <span id="financedAmount">$0.00</span>
+      </strong><br>
+
       <strong>Monthly Payment:
         <span id="monthlyPayment">$0.00</span>
+      </strong>
+
+      <!-- small margin before total coverage sum -->
+      <div style="margin-top:1em;"></div>
+
+      <strong>Total Prorated Amount:
+        <span id="totalResult">$0.00</span>
       </strong>
     </div>
 
