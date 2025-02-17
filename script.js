@@ -148,7 +148,7 @@ function calculateProRatedAmounts() {
     }
 
     let totalDays = daysBetween(effDate, expDate);
-    let remainDays= daysBetween(endDate, expDate);
+    let remainDays = daysBetween(endDate, expDate);
     if (totalDays <= 0) {
       row.querySelector(".result").innerText = "Invalid dates!";
       return;
@@ -240,18 +240,19 @@ function setupNumericFields() {
     input.addEventListener("blur", function() {
       let num = parseFloat(stripNonNumeric(this.value));
       if (isNaN(num)) num = 0;
-      // Dollar inputs: format to 2 decimals
+
       if (this.classList.contains("dollar-input")) {
         this.value = num.toFixed(2);
       }
-      // Percent inputs: format to 2 decimals and ensure the value is between 0 and 100
+      // For percent inputs, enforce that the value is between 0 and 100.
       else if (this.classList.contains("percent-input")) {
         if (num < 0 || num > 100) {
           showError(this, "Please enter a percentage between 0 and 100.");
+          // Leave the value unchanged for correction
         } else {
           clearError(this);
+          this.value = num.toFixed(2);
         }
-        this.value = num.toFixed(2);
       }
       // Number of Payments: ensure an integer between 1 and 10
       else if (this.classList.contains("numPay-input")) {
