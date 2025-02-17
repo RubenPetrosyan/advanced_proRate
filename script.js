@@ -246,13 +246,16 @@ function setupNumericFields() {
       }
       // For percent inputs, enforce that the value is between 0 and 100.
       else if (this.classList.contains("percent-input")) {
-        if (num < 0 || num > 100) {
-          showError(this, "Please enter a percentage between 0 and 100.");
-          // Leave the value unchanged for correction
+        if (num < 0) {
+          showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
+          num = 0;
+        } else if (num > 100) {
+          showError(this, "Percentage cannot be more than 100. Auto-correcting to 100.");
+          num = 100;
         } else {
           clearError(this);
-          this.value = num.toFixed(2);
         }
+        this.value = num.toFixed(2);
       }
       // Number of Payments: ensure an integer between 1 and 10
       else if (this.classList.contains("numPay-input")) {
