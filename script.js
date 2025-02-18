@@ -1,7 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   // ------------------- UTILITY FUNCTIONS -------------------
   function stripNonNumeric(str) {
-    // Safely handle undefined or non-string inputs
     if (typeof str !== "string") return "";
     return str.replace(/[^0-9.]/g, "");
   }
@@ -98,23 +97,21 @@ document.addEventListener("DOMContentLoaded", function () {
   // ------------------- SETUP NUMERIC FIELDS -------------------
   function setupNumericFields() {
     document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
-      // A) On input: keep only digits and a single dot
       input.addEventListener("input", function () {
         let raw = stripNonNumeric(this.value);
         const parts = raw.split(".");
         if (parts.length > 2) {
           raw = parts[0] + "." + parts.slice(1).join("");
         }
-        // For percent inputs, clamp 0–100
         if (this.classList.contains("percent-input")) {
           let num = parseFloat(raw);
           if (!isNaN(num)) {
             if (num > 100) {
               raw = "100";
-              showError(this, "Percentage cannot exceed 100. Auto-correcting to 100.");
+              showError(this, "Percentage cannot be more than 100. Auto-correcting to 100.");
             } else if (num < 0) {
               raw = "0";
-              showError(this, "Percentage cannot be negative. Auto-correcting to 0.");
+              showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
             } else {
               clearError(this);
             }
@@ -123,13 +120,11 @@ document.addEventListener("DOMContentLoaded", function () {
         this.value = raw;
       });
 
-      // B) On focus: remove formatting and clear errors
       input.addEventListener("focus", function () {
         this.value = stripNonNumeric(this.value);
         clearError(this);
       });
 
-      // C) On blur: reformat value
       input.addEventListener("blur", function () {
         let num = parseFloat(stripNonNumeric(this.value));
         if (isNaN(num)) num = 0;
@@ -139,10 +134,10 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (this.classList.contains("percent-input")) {
           if (num < 0) {
             num = 0;
-            showError(this, "Percentage cannot be negative. Auto-correcting to 0.");
+            showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
           } else if (num > 100) {
             num = 100;
-            showError(this, "Percentage cannot exceed 100. Auto-correcting to 100.");
+            showError(this, "Percentage cannot be more than 100. Auto-correcting to 100.");
           } else {
             clearError(this);
           }
@@ -157,7 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   setupNumericFields();
 
-  // ------------------- BIDIRECTIONAL LOGIC FOR EACH ROW -------------------
+  // ------------------- BIDIRECTIONAL LOGIC PER ROW -------------------
   function setupDownPaymentBidirectional(row) {
     const premiumInput = row.querySelector(".premium");
     const downPayPctInput = row.querySelector(".downPayPct");
@@ -190,7 +185,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (carrierTaxPctInput && carrierTaxDollarInput) {
       function getBasePremium() {
         let pVal = parseFloat(stripNonNumeric(premiumInput?.value)) || 0;
-        // For TIV row, if premium is 0, try TIV * (rate/100)
         if ((pVal === 0) && tivInput && rateInput) {
           let tiv = parseFloat(stripNonNumeric(tivInput.value)) || 0;
           let rate = parseFloat(stripNonNumeric(rateInput.value)) || 0;
@@ -215,44 +209,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Initialize for each coverage row
   document.querySelectorAll(".coverage-row").forEach(row => {
     setupDownPaymentBidirectional(row);
     setupCarrierTaxBidirectional(row);
   });
 
-  // ------------------- POPULATE COVERAGE RESULTS TABLE -------------------
-  function populateCoverageResultsTable(results) {
-    const tbody = document.getElementById("coverageResultsBody");
-    tbody.innerHTML = ""; // Clear old rows
-
-    results.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.coverage}</td>
-        <td>$${item.finalAmt.toFixed(2)}</td>
-        <td>$${item.proratedTax.toFixed(2)}</td>
-        <td>$${item.proratedBrokerFee.toFixed(2)}</td>
-        <td>$${item.commission.toFixed(2)}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
   // ------------------- MAIN CALCULATION FUNCTION -------------------
   function calculateProRatedAmounts() {
-    // 1) Validate Payment Status
+    // Validate Payment Status
     const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
     if (paymentStatus === "no") {
       alert("Error: Client has not completed payments. Proration cannot be calculated.");
       return;
     }
 
-    // 2) Hide the results sections
-    document.getElementById("coverageResults").style.display = "none";
+    // Hide Totals section initially
     document.getElementById("totalResults").style.display = "none";
 
-    // 3) Check for validation errors
+    // Clamp all percent inputs & check for errors
     document.querySelectorAll(".percent-input").forEach(input => {
       let num = parseFloat(stripNonNumeric(input.value)) || 0;
       if (num < 0) {
@@ -275,26 +249,18 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // 4) Initialize totals
+    // Initialize totals
     let coverageSum = 0;
     let totalDownPaymentDollar = 0;
-
-    // Broker Fee inputs
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
     const finB = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
     let totalEarnedBrokerFee = totalB - finB;
     if (totalEarnedBrokerFee < 0) totalEarnedBrokerFee = 0;
 
-    // We'll store row-level results here, then pass to populateCoverageResultsTable
-    const coverageResultsData = [];
-
-    // 5) Process each coverage row
+    // Process each coverage row
     const coverageRows = document.querySelectorAll(".coverage-row");
     coverageRows.forEach(row => {
-      // Identify coverage name from first cell
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
-
-      // Retrieve field references
       const tivField = row.querySelector(".tiv");
       const rateField = row.querySelector(".rate");
       const premiumField = row.querySelector(".premium");
@@ -302,98 +268,72 @@ document.addEventListener("DOMContentLoaded", function () {
       const feeField = row.querySelector(".carrierFee");
       const commissionPctField = row.querySelector(".commissionPct");
       const downPayDollarField = row.querySelector(".downPayDollar");
-      // (DownPayPct is used for bidirectional, but not directly in final calc)
 
-      // Determine premium
       let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
       if (tivField && tivField.style.display !== "none") {
         let tiv = parseFloat(stripNonNumeric(tivField.value)) || 0;
         let rate = parseFloat(stripNonNumeric(rateField?.value)) || 0;
         premium = tiv * (rate / 100);
       }
+      if (premium <= 0) return;
 
-      if (premium <= 0) {
-        return; // skip row if no premium
-      }
-
-      // Other numeric values
       const taxPct = taxPctField ? parseFloat(stripNonNumeric(taxPctField.value)) || 0 : 0;
       const fee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
       const commissionPct = commissionPctField ? parseFloat(stripNonNumeric(commissionPctField.value)) || 0 : 0;
       const downPayDollar = downPayDollarField ? parseFloat(stripNonNumeric(downPayDollarField.value)) || 0 : 0;
 
-      // Date fields
       const effVal = row.querySelector(".effectiveDate")?.value;
       const expVal = row.querySelector(".expirationDate")?.value;
       const endVal = row.querySelector(".endorsementDate")?.value;
-
       let effDate = new Date(effVal || "");
       let expDate = new Date(expVal || "");
       let endDate = new Date(endVal || "");
-
-      if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) {
-        // If any date is invalid, skip
-        return;
-      }
+      if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) return;
 
       let totalDays = daysBetween(effDate, expDate);
       let remainDays = daysBetween(endDate, expDate);
-      if (totalDays <= 0) {
-        return;
-      }
+      if (totalDays <= 0) return;
 
-      // Prorated premium
       let proratedPremium = (premium / totalDays) * remainDays;
-      // Prorated carrier tax
       let proratedCarrierTax = proratedPremium * (taxPct / 100);
-      // Final amount for this coverage
       let finalAmt = proratedPremium + proratedCarrierTax + fee;
-      // Commission $
       let commissionDollar = premium * (commissionPct / 100);
 
-      // Accumulate down-payment
       totalDownPaymentDollar += downPayDollar;
-
-      // Accumulate coverage sum for broker fee allocation
       coverageSum += finalAmt;
 
-      // Temporarily store row data so we can compute prorated broker fee *after* we know coverageSum
-      coverageResultsData.push({
-        coverage: coverageName,
-        premium: premium,
-        proratedPremium: proratedPremium,
-        proratedTax: proratedCarrierTax,
-        fee: fee,
-        finalAmt: finalAmt,
-        commission: commissionDollar
-      });
+      const finalAmtField = row.querySelector(".finalAmt");
+      const proratedTaxField = row.querySelector(".proratedTax");
+      const proratedBrokerFeeField = row.querySelector(".proratedBrokerFee");
+      const commissionDollarField = row.querySelector(".commissionDollar");
+
+      if (finalAmtField) finalAmtField.value = "$" + finalAmt.toFixed(2);
+      if (proratedTaxField) proratedTaxField.value = "$" + proratedCarrierTax.toFixed(2);
+      if (commissionDollarField) commissionDollarField.value = "$" + commissionDollar.toFixed(2);
     });
 
-    // 6) Allocate prorated broker fee for each row
-    //    We do: rowBrokerFee = (rowFinalAmt / coverageSum) * totalEarnedBrokerFee
-    //    as long as coverageSum > 0
-    coverageResultsData.forEach(item => {
+    // Allocate prorated broker fee per row
+    coverageRows.forEach(row => {
+      let finalAmtField = row.querySelector(".finalAmt");
+      if (!finalAmtField || finalAmtField.value === "") return;
+      let rowFinalAmt = parseFloat(stripNonNumeric(finalAmtField.value));
       let proratedBrokerFee = 0;
       if (coverageSum > 0 && totalEarnedBrokerFee > 0) {
-        proratedBrokerFee = (item.finalAmt / coverageSum) * totalEarnedBrokerFee;
+        proratedBrokerFee = (rowFinalAmt / coverageSum) * totalEarnedBrokerFee;
       }
-      item.proratedBrokerFee = proratedBrokerFee;
+      let proratedBrokerFeeField = row.querySelector(".proratedBrokerFee");
+      if (proratedBrokerFeeField)
+        proratedBrokerFeeField.value = "$" + proratedBrokerFee.toFixed(2);
     });
 
-    // 7) Populate the coverage results table
-    populateCoverageResultsTable(coverageResultsData);
-
-    // 8) Display total results
-    // totalEarnedBrokerFee was computed above
+    // Update Totals Section
     document.getElementById("totalResult").innerText = "$" + coverageSum.toFixed(2);
     document.getElementById("totalBrokerFeeResult").innerText = "$" + totalB.toFixed(2);
     document.getElementById("totalDownPaymentDollar").innerText = "$" + totalDownPaymentDollar.toFixed(2);
     document.getElementById("earnedBrokerFee").innerText = "$" + totalEarnedBrokerFee.toFixed(2);
-
     const toBeEarned = totalDownPaymentDollar + totalEarnedBrokerFee;
     document.getElementById("toBeEarned").innerText = "$" + toBeEarned.toFixed(2);
 
-    // Financed Amount
     let financedAmt = 0;
     if (totalDownPaymentDollar >= coverageSum) {
       financedAmt = 0;
@@ -403,7 +343,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     document.getElementById("financedAmount").innerText = "$" + financedAmt.toFixed(2);
 
-    // Monthly Payment
     let aprRaw = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
     let nPays = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
     if (nPays < 1) nPays = 1;
@@ -418,8 +357,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     document.getElementById("monthlyPayment").innerText = "$" + monthlyPay.toFixed(2);
 
-    // 9) Show coverage results and totals
-    document.getElementById("coverageResults").style.display = "block";
+    // Show Totals Section
     document.getElementById("totalResults").style.display = "flex";
   }
 
