@@ -200,11 +200,11 @@ document.addEventListener("DOMContentLoaded", function () {
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
   // For each coverage row (from Main Calculator) that has a premium,
   // generate a secondary block.
-  // For Auto Liability, include 4 rows (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax).
-  // For other coverages, include only 3 rows (Prorated Premium, Policy Fee, Prorated Tax).
-  // Each row has 3 columns: Line Item, Amount ($) and Down Payment (with two inline inputs for % and $).
-  // Default Down Payment % values are: Prorated Premium:20%, Policy Fee:100%, Broker Fee:100%, Prorated Tax:100%.
-  // Bidirectional behavior is implemented using a data attribute "lastEdited" on the secondary block.
+  // For Auto Liability, include 4 rows: Prorated Premium, Policy Fee, Broker Fee, Prorated Tax.
+  // For all other coverages, include 3 rows: Prorated Premium, Policy Fee, Prorated Tax.
+  // Each row: Column 1 - Line Item, Column 2 - Amount ($), Column 3 - Down Payment (two inline inputs: % and $).
+  // Default Down Payment %: Prorated Premium:20%, Policy Fee:100%, Broker Fee:100%, Prorated Tax:100%.
+  // Bidirectional: When a DP field gets focus, record last edited; "Calculate DP" button recalculates the other.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -220,10 +220,10 @@ document.addEventListener("DOMContentLoaded", function () {
       let policyFee = row.dataset.policyFee || "0.00";
       let proratedTax = row.dataset.proratedTax || "0.00";
       
-      // For Broker Fee, only include if Auto Liability (by checking class)
-      let includeBrokerFee = row.classList.contains("auto-liability");
+      // For Broker Fee, include only if Auto Liability
+      let isAuto = row.classList.contains("auto-liability");
       let brokerFeeHtml = "";
-      if (includeBrokerFee) {
+      if (isAuto) {
         let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
         brokerFeeHtml = `
           <tr data-line="brokerFee">
@@ -239,6 +239,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
       }
       
+      // Build the block HTML.
+      // For non-Auto Liability, we exclude the Broker Fee row.
       let blockHtml = `
         <div class="secondary-block" data-last-edited="">
           <h3>${coverageName} - Secondary Calculator</h3>
@@ -271,7 +273,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   </div>
                 </td>
               </tr>
-              ${brokerFeeHtml}
+              ${isAuto ? brokerFeeHtml : "" }
               <tr data-line="proratedTax">
                 <td>Prorated Tax</td>
                 <td><input type="text" class="sec-amount sec-proratedTax" value="${proratedTax}" readonly /></td>
@@ -287,12 +289,14 @@ document.addEventListener("DOMContentLoaded", function () {
           <button class="sec-calcDP">Calculate DP</button>
         </div>
       `;
+      
       secContainer.innerHTML += blockHtml;
     });
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    // Attach focus event listeners for bidirectional updates
+    
+    // Attach focus event listeners to record last-edited field per block
     document.querySelectorAll(".secondary-block").forEach(block => {
       block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
         input.addEventListener("focus", function () {
@@ -305,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
+    
     // Use event delegation for the "Calculate DP" button
     document.getElementById("secondaryBlocks").addEventListener("click", function(e) {
       if (e.target && e.target.matches(".sec-calcDP")) {
@@ -412,7 +417,7 @@ document.addEventListener("DOMContentLoaded", function () {
       row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
     populateSecondaryCalculator();
-    // Optionally, call populateExtraResults() if needed.
+    // Optionally, you can call populateExtraResults() if needed.
   }
   
   // ------------------- EVENT LISTENERS -------------------
