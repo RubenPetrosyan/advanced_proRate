@@ -312,37 +312,50 @@
       </tbody>
     </table>
 
-   <!-- Final Results Section -->
-<div class="total-result">
-  <div class="result-cell">
-    <strong>DownPayment</strong>
-    <span id="downPaymentDollar">$0.00</span>
+<!-- Final Results Section -->
+<div class="results-container">
+  <!-- Left Column -->
+  <div class="result-column left-column">
+    <div class="result-cell">
+      <strong>Total Prorated Amount</strong>
+      <span id="totalResult">$0.00</span>
+    </div>
+    <div class="result-cell">
+      <strong>Total Broker Fee</strong>
+      <span id="totalBrokerFeeResult">$0.00</span>
+    </div>
   </div>
-  <div class="result-cell">
-    <strong>Earned Broker Fee</strong>
-    <span id="earnedBrokerFee">$0.00</span>
+  
+  <!-- Center Column -->
+  <div class="result-column center-column">
+    <div class="result-cell">
+      <strong>DownPayment</strong>
+      <span id="downPaymentDollar">$0.00</span>
+    </div>
+    <div class="result-cell">
+      <strong>Earned Broker Fee</strong>
+      <span id="earnedBrokerFee">$0.00</span>
+    </div>
+    <div class="result-cell">
+      <strong>To Be Earned</strong>
+      <span id="toBeEarned">$0.00</span>
+    </div>
   </div>
-  <div class="result-cell">
-    <strong>To Be Earned</strong>
-    <span id="toBeEarned">$0.00</span>
-  </div>
-  <div class="result-cell">
-    <strong>Financed Amount</strong>
-    <span id="financedAmount">$0.00</span>
-  </div>
-  <div class="result-cell">
-    <strong>Monthly Payment</strong>
-    <span id="monthlyPayment">$0.00</span>
-  </div>
-  <div class="result-cell">
-    <strong>Total Prorated Amount</strong>
-    <span id="totalResult">$0.00</span>
+  
+  <!-- Right Column -->
+  <div class="result-column right-column">
+    <div class="result-cell">
+      <strong>Financed Amount</strong>
+      <span id="financedAmount">$0.00</span>
+    </div>
+    <div class="result-cell">
+      <strong>Monthly Payment</strong>
+      <span id="monthlyPayment">$0.00</span>
+    </div>
   </div>
 </div>
 
-
-    <button id="calculateBtn">Calculate</button>
-  </div>
+<button id="calculateBtn">Calculate</button>
 
   <!-- Make sure script.js is the correct, updated version -->
   <script src="script.js"></script>
