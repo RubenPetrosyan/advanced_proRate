@@ -199,13 +199,12 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
   // For each coverage row (from Main Calculator) that has a premium,
-  // generate a secondary block with a table that has 4 rows and 3 columns:
-  // Row 1: Prorated Premium
-  // Row 2: Policy Fee
-  // Row 3: Broker Fee
-  // Row 4: Prorated Tax
-  // Column 1: Line Item, Column 2: Amount ($) (auto-filled), Column 3: Down Payment (% and $ inline)
-  // Also, add bidirectional behavior using a "lastEdited" attribute on the block.
+  // generate a secondary block.
+  // For Auto Liability, include 4 rows (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax).
+  // For other coverages, include only 3 rows (Prorated Premium, Policy Fee, Prorated Tax).
+  // Each row has 3 columns: Line Item, Amount ($) and Down Payment (with two inline inputs for % and $).
+  // Default Down Payment % values are: Prorated Premium:20%, Policy Fee:100%, Broker Fee:100%, Prorated Tax:100%.
+  // Bidirectional behavior is implemented using a data attribute "lastEdited" on the secondary block.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -213,17 +212,33 @@ document.addEventListener("DOMContentLoaded", function () {
     coverageRows.forEach(row => {
       const premiumField = row.querySelector(".premium");
       let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
-      if (premium <= 0) return; // Only process rows with premium
+      if (premium <= 0) return; // Only for rows with premium
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
-      // Retrieve extra data from dataset (set in main calculation)
+      // Retrieve extra data from main calc dataset
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee = row.dataset.policyFee || "0.00";
-      let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
       let proratedTax = row.dataset.proratedTax || "0.00";
       
-      // Build secondary block HTML with default Down Payment % values:
-      // Prorated Premium: 20%, Policy Fee: 100%, Broker Fee: 100%, Prorated Tax: 100%
+      // For Broker Fee, only include if Auto Liability (by checking class)
+      let includeBrokerFee = row.classList.contains("auto-liability");
+      let brokerFeeHtml = "";
+      if (includeBrokerFee) {
+        let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
+        brokerFeeHtml = `
+          <tr data-line="brokerFee">
+            <td>Broker Fee</td>
+            <td><input type="text" class="sec-amount sec-brokerFee" value="${brokerFee.toFixed(2)}" /></td>
+            <td class="downPaymentCell">
+              <div class="dpContainer">
+                <input type="text" class="sec-dpPct sec-dpPct-broker" value="100" placeholder="%" />
+                <input type="text" class="sec-dpAmt sec-dpAmt-broker" value="0" placeholder="$" />
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+      
       let blockHtml = `
         <div class="secondary-block" data-last-edited="">
           <h3>${coverageName} - Secondary Calculator</h3>
@@ -256,16 +271,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   </div>
                 </td>
               </tr>
-              <tr data-line="brokerFee">
-                <td>Broker Fee</td>
-                <td><input type="text" class="sec-amount sec-brokerFee" value="${brokerFee.toFixed(2)}" /></td>
-                <td class="downPaymentCell">
-                  <div class="dpContainer">
-                    <input type="text" class="sec-dpPct sec-dpPct-broker" value="100" placeholder="%" />
-                    <input type="text" class="sec-dpAmt sec-dpAmt-broker" value="0" placeholder="$" />
-                  </div>
-                </td>
-              </tr>
+              ${brokerFeeHtml}
               <tr data-line="proratedTax">
                 <td>Prorated Tax</td>
                 <td><input type="text" class="sec-amount sec-proratedTax" value="${proratedTax}" readonly /></td>
@@ -286,8 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    
-    // Attach focus event listeners to record last-edited field per block
+    // Attach focus event listeners for bidirectional updates
     document.querySelectorAll(".secondary-block").forEach(block => {
       block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
         input.addEventListener("focus", function () {
@@ -300,8 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    
-    // Use event delegation to attach listener for "Calculate DP" buttons in secondary blocks
+    // Use event delegation for the "Calculate DP" button
     document.getElementById("secondaryBlocks").addEventListener("click", function(e) {
       if (e.target && e.target.matches(".sec-calcDP")) {
         const block = e.target.closest(".secondary-block");
@@ -408,8 +412,9 @@ document.addEventListener("DOMContentLoaded", function () {
       row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
     populateSecondaryCalculator();
-    // (Optionally, call populateExtraResults() if needed)
+    // Optionally, call populateExtraResults() if needed.
   }
+  
   // ------------------- EVENT LISTENERS -------------------
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
   document.getElementById("financedBrokerFee").addEventListener("blur", validateFinancedBrokerFee);
