@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <!-- Coverage Table -->
+    <!-- Main Coverage Table -->
     <div class="table-wrapper">
       <table>
         <thead>
@@ -93,7 +93,7 @@
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
+            <!-- Result Fields (per row) -->
             <td><input type="text" class="finalAmt result-input" readonly /></td>
             <td><input type="text" class="proratedTax result-input" readonly /></td>
             <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
@@ -316,7 +316,12 @@
       </table>
     </div>
 
-    <!-- Totals Section removed from UI -->
+    <!-- (Totals section removed from UI) -->
+
+    <!-- Extra Detailed Results Section (appears after Calculate) -->
+    <div id="extraResultsContainer" style="display: none; margin-top: 20px;">
+      <!-- Extra detailed results for each coverage with a premium will be injected here -->
+    </div>
 
     <button id="calculateBtn">Calculate</button>
   </div>
