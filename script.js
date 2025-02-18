@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   setupNumericFields();
-  // ------------------- BIDIRECTIONAL LOGIC PER ROW -------------------
+  // ------------------- BIDIRECTIONAL LOGIC PER ROW (Main Calculator) -------------------
   function setupDownPaymentBidirectional(row) {
     const premiumInput = row.querySelector(".premium");
     const downPayPctInput = row.querySelector(".downPayPct");
@@ -193,11 +193,15 @@ document.addEventListener("DOMContentLoaded", function () {
     setupCarrierTaxBidirectional(row);
   });
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
-  // For each coverage row (from main calculator) that has a premium,
-  // generate a block with a table (4 rows, 3 columns):
-  // Column 1: Line Item (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax)
-  // Column 2: Amount ($) – auto-filled (editable if desired)
-  // Column 3: Down Payment – contains two inline inputs: one for % and one for $.
+  // For each coverage row with a premium, generate a secondary block.
+  // Each block contains a table with 4 rows and 3 columns:
+  // - Row 1: Prorated Premium
+  // - Row 2: Policy Fee
+  // - Row 3: Broker Fee
+  // - Row 4: Prorated Tax
+  // Column 1: Line Item, Column 2: Amount ($) (auto-filled), Column 3: Down Payment
+  // The Down Payment cell contains two inline input fields (one for %, one for $).
+  // We add bidirectional behavior via a "lastEdited" attribute.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -208,15 +212,16 @@ document.addEventListener("DOMContentLoaded", function () {
       if (premium <= 0) return; // only for rows with premium
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
-      // Retrieve extra data from dataset (set in main calculation)
+      // Retrieve extra data from dataset (set in main calc)
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee = row.dataset.policyFee || "0.00";
-      // Broker Fee is prefilled from general input "Total Broker Fee"
       let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
       let proratedTax = row.dataset.proratedTax || "0.00";
       
+      // Build the secondary block HTML with default DP % values:
+      // Prorated Premium: 20%, Policy Fee: 100%, Broker Fee: 100%, Prorated Tax: 100%
       let blockHtml = `
-        <div class="secondary-block">
+        <div class="secondary-block" data-last-edited="">
           <h3>${coverageName} - Secondary Calculator</h3>
           <table>
             <thead>
@@ -227,42 +232,42 @@ document.addEventListener("DOMContentLoaded", function () {
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-line="proratedPremium">
                 <td>Prorated Premium</td>
-                <td><input type="text" class="sec-amount sec-proratedPremium" value="${proratedPremium}" /></td>
+                <td><input type="text" class="sec-amount sec-proratedPremium" value="${proratedPremium}" readonly /></td>
                 <td class="downPaymentCell">
                   <div class="dpContainer">
-                    <input type="text" class="sec-dpPct sec-dpPct-proratedPremium" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpPct sec-dpPct-proratedPremium" value="20" placeholder="%" />
                     <input type="text" class="sec-dpAmt sec-dpAmt-proratedPremium" value="0" placeholder="$" />
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-line="policyFee">
                 <td>Policy Fee</td>
-                <td><input type="text" class="sec-amount sec-policyFee" value="${policyFee}" /></td>
+                <td><input type="text" class="sec-amount sec-policyFee" value="${policyFee}" readonly /></td>
                 <td class="downPaymentCell">
                   <div class="dpContainer">
-                    <input type="text" class="sec-dpPct sec-dpPct-policyFee" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpPct sec-dpPct-policyFee" value="100" placeholder="%" />
                     <input type="text" class="sec-dpAmt sec-dpAmt-policyFee" value="0" placeholder="$" />
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-line="brokerFee">
                 <td>Broker Fee</td>
                 <td><input type="text" class="sec-amount sec-brokerFee" value="${brokerFee.toFixed(2)}" /></td>
                 <td class="downPaymentCell">
                   <div class="dpContainer">
-                    <input type="text" class="sec-dpPct sec-dpPct-broker" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpPct sec-dpPct-broker" value="100" placeholder="%" />
                     <input type="text" class="sec-dpAmt sec-dpAmt-broker" value="0" placeholder="$" />
                   </div>
                 </td>
               </tr>
-              <tr>
+              <tr data-line="proratedTax">
                 <td>Prorated Tax</td>
-                <td><input type="text" class="sec-amount sec-proratedTax" value="${proratedTax}" /></td>
+                <td><input type="text" class="sec-amount sec-proratedTax" value="${proratedTax}" readonly /></td>
                 <td class="downPaymentCell">
                   <div class="dpContainer">
-                    <input type="text" class="sec-dpPct sec-dpPct-tax" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpPct sec-dpPct-tax" value="100" placeholder="%" />
                     <input type="text" class="sec-dpAmt sec-dpAmt-tax" value="0" placeholder="$" />
                   </div>
                 </td>
@@ -277,18 +282,42 @@ document.addEventListener("DOMContentLoaded", function () {
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    // Attach event listeners for each "Calculate DP" button in secondary calculator blocks
+    // Attach focus event listeners to record last-edited field per block
+    document.querySelectorAll(".secondary-block").forEach(block => {
+      block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
+        input.addEventListener("focus", function () {
+          // Set a data attribute on the block for last edited type:
+          // "pct" if this input has class sec-dpPct, "amt" if sec-dpAmt.
+          const blockEl = this.closest(".secondary-block");
+          if (this.classList.contains("sec-dpPct")) {
+            blockEl.dataset.lastEdited = "pct";
+          } else if (this.classList.contains("sec-dpAmt")) {
+            blockEl.dataset.lastEdited = "amt";
+          }
+        });
+      });
+    });
+    // Attach event listeners for each "Calculate DP" button
     document.querySelectorAll(".sec-calcDP").forEach(btn => {
       btn.addEventListener("click", function () {
         const block = this.closest(".secondary-block");
+        const lastEdited = block.dataset.lastEdited; // "pct" or "amt"
+        // Process each row in the block:
         block.querySelectorAll("tbody tr").forEach(tr => {
           const amountInput = tr.querySelector(".sec-amount");
           const dpPctInput = tr.querySelector(".sec-dpPct");
           const dpAmtInput = tr.querySelector(".sec-dpAmt");
           let amount = parseFloat(stripNonNumeric(amountInput.value)) || 0;
-          let dpPct = parseFloat(stripNonNumeric(dpPctInput.value)) || 0;
-          let calculatedDP = (amount * dpPct) / 100;
-          dpAmtInput.value = calculatedDP.toFixed(2);
+          if (lastEdited === "pct") {
+            // Recalculate DP $ from %
+            let dpPct = parseFloat(stripNonNumeric(dpPctInput.value)) || 0;
+            dpAmtInput.value = ((amount * dpPct) / 100).toFixed(2);
+          } else if (lastEdited === "amt") {
+            // Recalculate DP % from $
+            let dpAmt = parseFloat(stripNonNumeric(dpAmtInput.value)) || 0;
+            let calcPct = amount ? (dpAmt / amount) * 100 : 0;
+            dpPctInput.value = calcPct.toFixed(2);
+          }
         });
       });
     });
