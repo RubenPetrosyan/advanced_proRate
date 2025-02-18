@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
       errorElem.innerText = "";
     }
   }
+  
   // ------------------- VALIDATION FUNCTIONS -------------------
   function validateFinancedBrokerFee() {
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
@@ -52,6 +53,7 @@ document.addEventListener("DOMContentLoaded", function () {
       clearError(this);
     }
   }
+  
   // ------------------- AUTO LIABILITY DATE AUTO-FILL -------------------
   const autoLiabilityRow = document.querySelector(".auto-liability");
   if (autoLiabilityRow) {
@@ -84,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+  
   // ------------------- SETUP NUMERIC FIELDS -------------------
   function setupNumericFields() {
     document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
@@ -138,6 +141,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
   setupNumericFields();
+  
   // ------------------- BIDIRECTIONAL LOGIC PER ROW (Main Calculator) -------------------
   function setupDownPaymentBidirectional(row) {
     const premiumInput = row.querySelector(".premium");
@@ -192,16 +196,16 @@ document.addEventListener("DOMContentLoaded", function () {
     setupDownPaymentBidirectional(row);
     setupCarrierTaxBidirectional(row);
   });
+  
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
-  // For each coverage row (from Main Calculator) that has a premium, generate a secondary block.
-  // Each block contains a table with 4 rows (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax) and 3 columns:
-  // Column 1: Line Item
-  // Column 2: Amount ($) – auto-filled
-  // Column 3: Down Payment (% / $) – inline inputs
-  // Also, we add bidirectional behavior:
-  // When the user focuses on the Down Payment % or $ field, we record the last edited type.
-  // When the "Calculate DP" button is clicked, for each row in that block:
-  // If last edited is "pct", recalc DP $; if "amt", recalc DP %.
+  // For each coverage row (from Main Calculator) that has a premium,
+  // generate a secondary block with a table that has 4 rows and 3 columns:
+  // Row 1: Prorated Premium
+  // Row 2: Policy Fee
+  // Row 3: Broker Fee
+  // Row 4: Prorated Tax
+  // Column 1: Line Item, Column 2: Amount ($) (auto-filled), Column 3: Down Payment (% and $ inline)
+  // Also, add bidirectional behavior using a "lastEdited" attribute on the block.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -209,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function () {
     coverageRows.forEach(row => {
       const premiumField = row.querySelector(".premium");
       let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
-      if (premium <= 0) return;
+      if (premium <= 0) return; // Only process rows with premium
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
       // Retrieve extra data from dataset (set in main calculation)
@@ -218,7 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
       let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
       let proratedTax = row.dataset.proratedTax || "0.00";
       
-      // Build secondary block with default DP %:
+      // Build secondary block HTML with default Down Payment % values:
       // Prorated Premium: 20%, Policy Fee: 100%, Broker Fee: 100%, Prorated Tax: 100%
       let blockHtml = `
         <div class="secondary-block" data-last-edited="">
@@ -282,7 +286,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    // Attach focus event listeners for bidirectional updates
+    
+    // Attach focus event listeners to record last-edited field per block
     document.querySelectorAll(".secondary-block").forEach(block => {
       block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
         input.addEventListener("focus", function () {
@@ -295,10 +300,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    // Attach event listeners for each "Calculate DP" button in secondary blocks
-    document.querySelectorAll(".sec-calcDP").forEach(btn => {
-      btn.addEventListener("click", function () {
-        const block = this.closest(".secondary-block");
+    
+    // Use event delegation to attach listener for "Calculate DP" buttons in secondary blocks
+    document.getElementById("secondaryBlocks").addEventListener("click", function(e) {
+      if (e.target && e.target.matches(".sec-calcDP")) {
+        const block = e.target.closest(".secondary-block");
         const lastEdited = block.dataset.lastEdited; // "pct" or "amt"
         block.querySelectorAll("tbody tr").forEach(tr => {
           const amountInput = tr.querySelector(".sec-amount");
@@ -314,9 +320,10 @@ document.addEventListener("DOMContentLoaded", function () {
             dpPctInput.value = calcPct.toFixed(2);
           }
         });
-      });
+      }
     });
   }
+  
   // ------------------- MAIN CALCULATION FUNCTION (Main Calculator) -------------------
   function calculateProRatedAmounts() {
     const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
@@ -401,6 +408,7 @@ document.addEventListener("DOMContentLoaded", function () {
       row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
     populateSecondaryCalculator();
+    // (Optionally, call populateExtraResults() if needed)
   }
   // ------------------- EVENT LISTENERS -------------------
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
