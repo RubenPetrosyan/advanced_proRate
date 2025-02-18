@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
   
   // ------------------- BIDIRECTIONAL LOGIC PER ROW (Main Calculator) -------------------
   function setupDownPaymentBidirectional(row) {
-    const premiumInput = row.querySelector(".premium");
+    const premiumInput = row.querySelector(".premium") || row.querySelector(".tiv"); // For TIV row, use .tiv
     const downPayPctInput = row.querySelector(".downPayPct");
     const downPayDollarInput = row.querySelector(".downPayDollar");
     if (downPayPctInput && downPayDollarInput && premiumInput) {
@@ -197,30 +197,126 @@ document.addEventListener("DOMContentLoaded", function () {
     setupCarrierTaxBidirectional(row);
   });
   
+  // ------------------- MAIN CALCULATION FUNCTION (Main Calculator) -------------------
+  function calculateProRatedAmounts() {
+    const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
+    if (paymentStatus === "no") {
+      alert("Error: Client has not completed payments. Proration cannot be calculated.");
+      return;
+    }
+    document.querySelectorAll(".percent-input").forEach(input => {
+      let num = parseFloat(stripNonNumeric(input.value)) || 0;
+      if (num < 0) {
+        num = 0;
+        showError(input, "Percentage cannot be negative. Auto-correcting to 0.");
+      } else if (num > 100) {
+        num = 100;
+        showError(input, "Percentage cannot exceed 100. Auto-correcting to 100.");
+      } else {
+        clearError(input);
+      }
+      input.value = num.toFixed(2);
+    });
+    const errorElements = document.querySelectorAll(".error-message");
+    for (let err of errorElements) {
+      if (err.innerText.trim() !== "") {
+        alert("Please fix validation errors before calculating.");
+        return;
+      }
+    }
+    let coverageSum = 0;
+    let totalDownPaymentDollar = 0;
+    const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
+    const finB = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
+    let totalEarnedBrokerFee = totalB - finB;
+    if (totalEarnedBrokerFee < 0) totalEarnedBrokerFee = 0;
+    const coverageRows = document.querySelectorAll(".coverage-row");
+    coverageRows.forEach(row => {
+      // For TIV rows, use the .tiv input instead of .premium
+      let premium = 0;
+      if (row.classList.contains("tiv-row")) {
+        premium = parseFloat(stripNonNumeric(row.querySelector(".tiv").value)) || 0;
+      } else {
+        const premiumField = row.querySelector(".premium");
+        premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      }
+      const tivField = row.querySelector(".tiv");
+      const rateField = row.querySelector(".rate");
+      if (tivField && tivField.style.display !== "none") {
+        let tiv = parseFloat(stripNonNumeric(tivField.value)) || 0;
+        let rate = parseFloat(stripNonNumeric(rateField?.value)) || 0;
+        premium = tiv * (rate / 100);
+      }
+      if (premium <= 0) return;
+      const taxPctField = row.querySelector(".carrierTax");
+      const feeField = row.querySelector(".carrierFee");
+      const commissionPctField = row.querySelector(".commissionPct");
+      const downPayDollarField = row.querySelector(".downPayDollar");
+      const taxPct = taxPctField ? parseFloat(stripNonNumeric(taxPctField.value)) || 0 : 0;
+      const fee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
+      const commissionPct = commissionPctField ? parseFloat(stripNonNumeric(commissionPctField.value)) || 0 : 0;
+      const downPayDollar = downPayDollarField ? parseFloat(stripNonNumeric(downPayDollarField.value)) || 0 : 0;
+      const effVal = row.querySelector(".effectiveDate")?.value;
+      const expVal = row.querySelector(".expirationDate")?.value;
+      const endVal = row.querySelector(".endorsementDate")?.value;
+      let effDate = new Date(effVal || "");
+      let expDate = new Date(expVal || "");
+      let endDate = new Date(endVal || "");
+      if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) return;
+      let totalDays = daysBetween(effDate, expDate);
+      let remainDays = daysBetween(endDate, expDate);
+      if (totalDays <= 0) return;
+      let proratedPremium = (premium / totalDays) * remainDays;
+      let proratedCarrierTax = proratedPremium * (taxPct / 100);
+      let finalAmt = proratedPremium + proratedCarrierTax + fee;
+      let commissionDollar = premium * (commissionPct / 100);
+      totalDownPaymentDollar += downPayDollar;
+      coverageSum += finalAmt;
+      row.dataset.proratedPremium = proratedPremium.toFixed(2);
+      row.dataset.policyFee = fee.toFixed(2);
+      row.dataset.proratedTax = proratedCarrierTax.toFixed(2);
+    });
+    coverageRows.forEach(row => {
+      let finalAmtField = row.querySelector(".finalAmt");
+      if (!finalAmtField || finalAmtField.value === "") return;
+      let rowFinalAmt = parseFloat(stripNonNumeric(finalAmtField.value));
+      let proratedBrokerFee = 0;
+      if (coverageSum > 0 && totalEarnedBrokerFee > 0) {
+        proratedBrokerFee = (rowFinalAmt / coverageSum) * totalEarnedBrokerFee;
+      }
+      row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
+    });
+    populateSecondaryCalculator();
+    // Note: populateExtraResults() is not called in this version.
+  }
+  
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
   // For each coverage row (from Main Calculator) that has a premium,
   // generate a secondary block.
   // For Auto Liability, include 4 rows: Prorated Premium, Policy Fee, Broker Fee, Prorated Tax.
-  // For all other coverages, include 3 rows: Prorated Premium, Policy Fee, Prorated Tax.
-  // Each row: Column 1 - Line Item, Column 2 - Amount ($), Column 3 - Down Payment (two inline inputs: % and $).
-  // Default Down Payment %: Prorated Premium:20%, Policy Fee:100%, Broker Fee:100%, Prorated Tax:100%.
-  // Bidirectional: When a DP field gets focus, record last edited; "Calculate DP" button recalculates the other.
+  // For other coverages (including TIV), include 3 rows: Prorated Premium, Policy Fee, Prorated Tax.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
     const coverageRows = document.querySelectorAll(".coverage-row");
     coverageRows.forEach(row => {
-      const premiumField = row.querySelector(".premium");
-      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
-      if (premium <= 0) return; // Only for rows with premium
+      // Determine if the row is valid by checking premium
+      let premium = 0;
+      if (row.classList.contains("tiv-row")) {
+        premium = parseFloat(stripNonNumeric(row.querySelector(".tiv").value)) || 0;
+      } else {
+        const premiumField = row.querySelector(".premium");
+        premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      }
+      if (premium <= 0) return; // Only for rows with a valid premium
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
-      // Retrieve extra data from main calc dataset
+      // Retrieve extra data from main calculation dataset
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee = row.dataset.policyFee || "0.00";
       let proratedTax = row.dataset.proratedTax || "0.00";
       
-      // For Broker Fee, include only if Auto Liability
+      // For Broker Fee, include only for Auto Liability
       let isAuto = row.classList.contains("auto-liability");
       let brokerFeeHtml = "";
       if (isAuto) {
@@ -239,8 +335,8 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
       }
       
-      // Build the block HTML.
-      // For non-Auto Liability, we exclude the Broker Fee row.
+      // For TIV rows (Physical Damage), we want to include them as well.
+      // For non-auto, include only 3 rows (skip brokerFee).
       let blockHtml = `
         <div class="secondary-block" data-last-edited="">
           <h3>${coverageName} - Secondary Calculator</h3>
@@ -289,7 +385,6 @@ document.addEventListener("DOMContentLoaded", function () {
           <button class="sec-calcDP">Calculate DP</button>
         </div>
       `;
-      
       secContainer.innerHTML += blockHtml;
     });
     if (secContainer.innerHTML.trim() !== "") {
@@ -310,7 +405,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
     
-    // Use event delegation for the "Calculate DP" button
+    // Use event delegation for the "Calculate DP" button in secondary blocks
     document.getElementById("secondaryBlocks").addEventListener("click", function(e) {
       if (e.target && e.target.matches(".sec-calcDP")) {
         const block = e.target.closest(".secondary-block");
@@ -368,8 +463,13 @@ document.addEventListener("DOMContentLoaded", function () {
     if (totalEarnedBrokerFee < 0) totalEarnedBrokerFee = 0;
     const coverageRows = document.querySelectorAll(".coverage-row");
     coverageRows.forEach(row => {
-      const premiumField = row.querySelector(".premium");
-      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      let premium = 0;
+      if (row.classList.contains("tiv-row")) {
+        premium = parseFloat(stripNonNumeric(row.querySelector(".tiv").value)) || 0;
+      } else {
+        const premiumField = row.querySelector(".premium");
+        premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      }
       const tivField = row.querySelector(".tiv");
       const rateField = row.querySelector(".rate");
       if (tivField && tivField.style.display !== "none") {
@@ -417,7 +517,6 @@ document.addEventListener("DOMContentLoaded", function () {
       row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
     populateSecondaryCalculator();
-    // Optionally, you can call populateExtraResults() if needed.
   }
   
   // ------------------- EVENT LISTENERS -------------------
