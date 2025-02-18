@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <!-- Main Coverage Table -->
+    <!-- Coverage Table (Main Calculator) -->
     <div class="table-wrapper">
       <table>
         <thead>
@@ -49,17 +49,10 @@
             <th>Rate%</th>
             <th>Carrier Tax%</th>
             <th>Carrier Tax$</th>
-            <th>Carrier Fee$</th>
-            <th>Commission%</th>
-            <th>Down-Payment%</th>
-            <th>Down-Payment$</th>
+            <th>Policy Fee</th>
             <th>Effective Date</th>
             <th>Expiration Date</th>
             <th>Endorsement Date</th>
-            <th>Final Amt</th>
-            <th>Prorated Carrier TAX</th>
-            <th>Prorated Broker Fee</th>
-            <th>Commission $</th>
           </tr>
         </thead>
         <tbody id="coverageContainer">
@@ -78,26 +71,13 @@
             <td>
               <input type="text" value="0" class="carrierTaxDollar dollar-input" />
             </td>
+            <!-- Renamed Carrier Fee$ to Policy Fee -->
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
             </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields (per row) -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 2) General Liability -->
@@ -116,23 +96,9 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 3) Cargo -->
@@ -151,23 +117,9 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 4) Trailer Interchange -->
@@ -186,23 +138,9 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 5) Non-Trucking Liability -->
@@ -221,23 +159,9 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 6) Other -->
@@ -256,30 +180,15 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
 
           <!-- 7) Physical Damage (TIV) -->
           <tr class="coverage-row tiv-row">
             <td>Physical Damage (TIV)</td>
             <td>
-              <!-- For TIV row, show TIV input and hide premium input -->
               <input type="text" value="0" class="tiv dollar-input" />
             </td>
             <td>
@@ -294,34 +203,16 @@
             <td>
               <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
-            <td>
-              <input type="text" value="0" class="commissionPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayPct percent-input" />
-            </td>
-            <td>
-              <input type="text" value="0" class="downPayDollar dollar-input" />
-            </td>
             <td><input type="date" class="effectiveDate" /></td>
             <td><input type="date" class="expirationDate" /></td>
             <td><input type="date" class="endorsementDate" /></td>
-            <!-- Result Fields -->
-            <td><input type="text" class="finalAmt result-input" readonly /></td>
-            <td><input type="text" class="proratedTax result-input" readonly /></td>
-            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
-            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- (Totals section removed from UI) -->
-
-    <!-- Extra Detailed Results Section (appears after Calculate) -->
-    <div id="extraResultsContainer" style="display: none; margin-top: 20px;">
-      <!-- Extra detailed results for each coverage with a premium will be injected here -->
-    </div>
+    <!-- (The Extra Detailed Results Section remains as before) -->
+    <div id="extraResultsContainer" style="display: none; margin-top: 20px;"></div>
 
     <button id="calculateBtn">Calculate</button>
   </div>
