@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
   // Utility: Remove non-numeric characters (except the dot)
-  function stripNonNumeric(str) {
-    return str.replace(/[^0-9.]/g, "");
-  }
+ function stripNonNumeric(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[^0-9.]/g, "");
+}
 
   // Utility: Calculate day difference (rounded up) between two dates
   function daysBetween(d1, d2) {
