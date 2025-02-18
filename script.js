@@ -193,15 +193,15 @@ document.addEventListener("DOMContentLoaded", function () {
     setupCarrierTaxBidirectional(row);
   });
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
-  // For each coverage row with a premium, generate a secondary block.
-  // Each block contains a table with 4 rows and 3 columns:
-  // - Row 1: Prorated Premium
-  // - Row 2: Policy Fee
-  // - Row 3: Broker Fee
-  // - Row 4: Prorated Tax
-  // Column 1: Line Item, Column 2: Amount ($) (auto-filled), Column 3: Down Payment
-  // The Down Payment cell contains two inline input fields (one for %, one for $).
-  // We add bidirectional behavior via a "lastEdited" attribute.
+  // For each coverage row (from Main Calculator) that has a premium, generate a secondary block.
+  // Each block contains a table with 4 rows (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax) and 3 columns:
+  // Column 1: Line Item
+  // Column 2: Amount ($) – auto-filled
+  // Column 3: Down Payment (% / $) – inline inputs
+  // Also, we add bidirectional behavior:
+  // When the user focuses on the Down Payment % or $ field, we record the last edited type.
+  // When the "Calculate DP" button is clicked, for each row in that block:
+  // If last edited is "pct", recalc DP $; if "amt", recalc DP %.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -209,16 +209,16 @@ document.addEventListener("DOMContentLoaded", function () {
     coverageRows.forEach(row => {
       const premiumField = row.querySelector(".premium");
       let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
-      if (premium <= 0) return; // only for rows with premium
+      if (premium <= 0) return;
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
-      // Retrieve extra data from dataset (set in main calc)
+      // Retrieve extra data from dataset (set in main calculation)
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee = row.dataset.policyFee || "0.00";
       let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
       let proratedTax = row.dataset.proratedTax || "0.00";
       
-      // Build the secondary block HTML with default DP % values:
+      // Build secondary block with default DP %:
       // Prorated Premium: 20%, Policy Fee: 100%, Broker Fee: 100%, Prorated Tax: 100%
       let blockHtml = `
         <div class="secondary-block" data-last-edited="">
@@ -282,12 +282,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    // Attach focus event listeners to record last-edited field per block
+    // Attach focus event listeners for bidirectional updates
     document.querySelectorAll(".secondary-block").forEach(block => {
       block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
         input.addEventListener("focus", function () {
-          // Set a data attribute on the block for last edited type:
-          // "pct" if this input has class sec-dpPct, "amt" if sec-dpAmt.
           const blockEl = this.closest(".secondary-block");
           if (this.classList.contains("sec-dpPct")) {
             blockEl.dataset.lastEdited = "pct";
@@ -297,23 +295,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-    // Attach event listeners for each "Calculate DP" button
+    // Attach event listeners for each "Calculate DP" button in secondary blocks
     document.querySelectorAll(".sec-calcDP").forEach(btn => {
       btn.addEventListener("click", function () {
         const block = this.closest(".secondary-block");
         const lastEdited = block.dataset.lastEdited; // "pct" or "amt"
-        // Process each row in the block:
         block.querySelectorAll("tbody tr").forEach(tr => {
           const amountInput = tr.querySelector(".sec-amount");
           const dpPctInput = tr.querySelector(".sec-dpPct");
           const dpAmtInput = tr.querySelector(".sec-dpAmt");
           let amount = parseFloat(stripNonNumeric(amountInput.value)) || 0;
           if (lastEdited === "pct") {
-            // Recalculate DP $ from %
             let dpPct = parseFloat(stripNonNumeric(dpPctInput.value)) || 0;
             dpAmtInput.value = ((amount * dpPct) / 100).toFixed(2);
           } else if (lastEdited === "amt") {
-            // Recalculate DP % from $
             let dpAmt = parseFloat(stripNonNumeric(dpAmtInput.value)) || 0;
             let calcPct = amount ? (dpAmt / amount) * 100 : 0;
             dpPctInput.value = calcPct.toFixed(2);
@@ -406,7 +401,6 @@ document.addEventListener("DOMContentLoaded", function () {
       row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
     populateSecondaryCalculator();
-    populateExtraResults();
   }
   // ------------------- EVENT LISTENERS -------------------
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
