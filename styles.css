@@ -79,28 +79,33 @@ input {
 }
 
 .total-result {
-    text-align: center;
-    font-size: 18px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f2f2f2;
+  border-radius: 10px;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 20px;
+.result-cell {
+  background-color: #ffffff;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-button:hover {
-    background: #218838;
+.result-cell strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #007bff;
+  font-size: 16px;
 }
 
-.result {
-    font-weight: bold;
-    color: #007bff;
+.result-cell span {
+  font-weight: bold;
+  font-size: 20px;
+  color: #333;
 }
