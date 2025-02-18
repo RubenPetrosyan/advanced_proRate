@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     return str.replace(/[^0-9.]/g, "");
   }
 
-  // Utility: calculate day difference (rounded up) between two dates
+  // Utility: Calculate day difference (rounded up) between two dates
   function daysBetween(d1, d2) {
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
     return Math.ceil((d2 - d1) / MS_PER_DAY);
@@ -97,8 +97,8 @@ document.addEventListener("DOMContentLoaded", function () {
   function setupNumericFields() {
     document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
       // A) On input: allow only digits and a single dot.
-      // For percent inputs, also clamp the value to the 0–100 range as the user types.
-      input.addEventListener("input", function() {
+      // For percent inputs, clamp the value to the 0–100 range as the user types.
+      input.addEventListener("input", function () {
         let raw = stripNonNumeric(this.value);
         const parts = raw.split(".");
         if (parts.length > 2) {
@@ -122,21 +122,18 @@ document.addEventListener("DOMContentLoaded", function () {
       });
 
       // B) On focus: remove formatting and clear any error messages
-      input.addEventListener("focus", function() {
+      input.addEventListener("focus", function () {
         this.value = stripNonNumeric(this.value);
         clearError(this);
       });
 
       // C) On blur: reformat the value and perform validations
-      input.addEventListener("blur", function() {
+      input.addEventListener("blur", function () {
         let num = parseFloat(stripNonNumeric(this.value));
         if (isNaN(num)) num = 0;
-
         if (this.classList.contains("dollar-input")) {
           this.value = num.toFixed(2);
-        }
-        // For percent inputs, ensure the value is between 0 and 100.
-        else if (this.classList.contains("percent-input")) {
+        } else if (this.classList.contains("percent-input")) {
           if (num < 0) {
             showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
             num = 0;
@@ -147,9 +144,7 @@ document.addEventListener("DOMContentLoaded", function () {
             clearError(this);
           }
           this.value = num.toFixed(2);
-        }
-        // Number of Payments: ensure an integer between 1 and 10
-        else if (this.classList.contains("numPay-input")) {
+        } else if (this.classList.contains("numPay-input")) {
           if (num < 1) num = 1;
           if (num > 10) num = 10;
           this.value = String(Math.round(num));
@@ -240,23 +235,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Final amount = (prorated * (1 + tax%)) + fee
       let finalAmt = prorated * (1 + carrierTax / 100) + carrierFee;
-
-      // Display row result
       row.querySelector(".result").innerText = `$${finalAmt.toFixed(2)}`;
       coverageSum += finalAmt;
     });
 
-    // Update final result fields
+    // Update Total Prorated Amount
     document.getElementById("totalResult").innerText = `$${coverageSum.toFixed(2)}`;
 
-    // DownPayment: if 0, interpret as 100%
+    // --- Revised Down-Payment and Financed Amount Calculation ---
     let dpPct = parseFloat(stripNonNumeric(document.getElementById("downpayment").value)) || 0;
-    if (dpPct <= 0) dpPct = 100;
+    if (dpPct < 0) dpPct = 0;
+    if (dpPct > 100) dpPct = 100;
     let dpRatio = dpPct / 100.0;
     const downPaymentDollar = coverageSum * dpRatio;
     document.getElementById("downPaymentDollar").innerText = `$${downPaymentDollar.toFixed(2)}`;
 
-    // Earned Broker Fee: Total Broker Fee - Financed Broker Fee
+    // Earned Broker Fee remains as before: Total Broker Fee - Financed Broker Fee
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
     const finB   = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
     let earnedBF = totalB - finB;
@@ -267,12 +261,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const toBeEarned = downPaymentDollar + earnedBF;
     document.getElementById("toBeEarned").innerText = `$${toBeEarned.toFixed(2)}`;
 
-    // Financed Amount: (coverageSum - DownPayment) + Financed Broker Fee
-    let financedAmt = (coverageSum - downPaymentDollar) + finB;
-    if (financedAmt < 0) financedAmt = 0;
+    // Financed Amount:
+    // If down-payment is 100% then client pays full amount upfront so financed amount is 0.
+    // Otherwise, financed amount = (coverageSum - downPaymentDollar) + financedBrokerFee.
+    let financedAmt = 0;
+    if (dpPct === 100) {
+      financedAmt = 0;
+    } else {
+      financedAmt = (coverageSum - downPaymentDollar) + finB;
+      if (financedAmt < 0) financedAmt = 0;
+    }
     document.getElementById("financedAmount").innerText = `$${financedAmt.toFixed(2)}`;
 
-    // Monthly Payment calculation with APR and number of payments
+    // Monthly Payment calculation based on financed amount, APR, and number of payments.
     let aprRaw = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
     let nPays  = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
     if (nPays < 1) nPays = 1;
@@ -288,9 +289,8 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("monthlyPayment").innerText = `$${monthlyPay.toFixed(2)}`;
   }
 
-  // Attach calculate button event
+  // Attach calculate button event and additional validations
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
-  // Attach additional validations
   document.getElementById("financedBrokerFee").addEventListener("blur", validateFinancedBrokerFee);
   document.querySelectorAll(".expirationDate").forEach(expInput => {
     expInput.addEventListener("blur", validateExpirationDate);
