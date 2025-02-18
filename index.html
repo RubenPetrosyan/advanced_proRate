@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Truck Insurance ProRate Calculator</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
@@ -13,19 +13,44 @@
     <!-- General Fields -->
     <div class="general-fields">
       <label>Total Broker Fee:
-        <input type="text" value="0" id="totalBrokerFee" class="dollar-input">
+        <input
+          type="text"
+          value="0"
+          id="totalBrokerFee"
+          class="dollar-input"
+        />
       </label>
       <label>Financed Broker Fee:
-        <input type="text" value="0" id="financedBrokerFee" class="dollar-input">
+        <input
+          type="text"
+          value="0"
+          id="financedBrokerFee"
+          class="dollar-input"
+        />
       </label>
       <label>Down-Payment %:
-        <input type="text" value="0" id="downpayment" class="percent-input">
+        <input
+          type="text"
+          value="0"
+          id="downpayment"
+          class="percent-input"
+        />
       </label>
       <label>APR %:
-        <input type="text" value="10" id="apr" class="percent-input">
+        <input
+          type="text"
+          value="10"
+          id="apr"
+          class="percent-input"
+        />
       </label>
       <label>No of Payments:
-        <input type="text" value="9" id="numPayments" class="numPay-input">
+        <input
+          type="text"
+          value="9"
+          id="numPayments"
+          class="numPay-input"
+        />
       </label>
     </div>
 
@@ -40,7 +65,7 @@
           <th>Carrier Fee (USD)</th>
           <th>Effective Date</th>
           <th>Expiration Date</th>
-          <th><strong>Endorsement Date</strong></th>
+          <th>Endorsement Date</th>
           <th>Result</th>
         </tr>
       </thead>
@@ -48,24 +73,43 @@
         <!-- 1) Auto Liability -->
         <tr class="coverage-row auto-liability">
           <td>Auto Liability</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
-          <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
           <td>
-            <input type="date" class="effectiveDate">
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
+          <!-- No Rate % for Auto Liability, so just show '-' -->
+          <td>-</td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td>
+            <input type="date" class="effectiveDate" />
             <div class="apply-btn-container">
               <button class="applyToAll" data-type="effective">📅 Apply to All</button>
             </div>
           </td>
           <td>
-            <input type="date" class="expirationDate">
+            <input type="date" class="expirationDate" />
             <div class="apply-btn-container">
               <button class="applyToAll" data-type="expiration">📅 Apply to All</button>
             </div>
           </td>
           <td>
-            <input type="date" class="endorsementDate">
+            <input type="date" class="endorsementDate" />
             <div class="apply-btn-container">
               <button class="applyToAll" data-type="endorsement">📅 Apply to All</button>
             </div>
@@ -76,91 +120,224 @@
         <!-- 2) General Liability -->
         <tr class="coverage-row">
           <td>General Liability</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 3) Cargo -->
         <tr class="coverage-row">
           <td>Cargo</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 4) Uninsured Motorist -->
         <tr class="coverage-row">
           <td>Uninsured Motorist</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 5) Trailer Interchange -->
         <tr class="coverage-row">
           <td>Trailer Interchange</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 6) Non-Trucking Liability -->
         <tr class="coverage-row">
           <td>Non-Trucking Liability</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 7) Other -->
         <tr class="coverage-row">
           <td>Other</td>
-          <td><input type="text" value="0" class="premium dollar-input"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="premium dollar-input"
+            />
+          </td>
           <td>-</td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
 
         <!-- 8) Physical Damage (TIV) -->
         <tr class="coverage-row tiv-row">
           <td>Physical Damage (TIV)</td>
-          <td><input type="text" value="0" class="tiv dollar-input"></td>
-          <td><input type="text" value="0" class="rate percent-input"></td>
-          <td><input type="text" value="0" class="carrierTax percent-input"></td>
-          <td><input type="text" value="0" class="carrierFee dollar-input"></td>
-          <td><input type="date" class="effectiveDate"></td>
-          <td><input type="date" class="expirationDate"></td>
-          <td><input type="date" class="endorsementDate"></td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="tiv dollar-input"
+            />
+          </td>
+          <!-- Rate % -->
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="rate percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierTax percent-input"
+            />
+          </td>
+          <td>
+            <input
+              type="text"
+              value="0"
+              class="carrierFee dollar-input"
+            />
+          </td>
+          <td><input type="date" class="effectiveDate" /></td>
+          <td><input type="date" class="expirationDate" /></td>
+          <td><input type="date" class="endorsementDate" /></td>
           <td class="result"></td>
         </tr>
       </tbody>
@@ -170,25 +347,24 @@
     <div class="total-result">
       <strong>DownPayment:
         <span id="downPaymentDollar">$0.00</span>
-      </strong><br>
+      </strong><br />
 
       <strong>Earned Broker Fee:
         <span id="earnedBrokerFee">$0.00</span>
-      </strong><br>
+      </strong><br />
 
       <strong>To Be Earned:
         <span id="toBeEarned">$0.00</span>
-      </strong><br>
+      </strong><br />
 
       <strong>Financed Amount:
         <span id="financedAmount">$0.00</span>
-      </strong><br>
+      </strong><br />
 
       <strong>Monthly Payment:
         <span id="monthlyPayment">$0.00</span>
       </strong>
 
-      <!-- small margin before total coverage sum -->
       <div style="margin-top:1em;"></div>
 
       <strong>Total Prorated Amount:
@@ -199,6 +375,7 @@
     <button id="calculateBtn">Calculate</button>
   </div>
 
+  <!-- Make sure script.js is the correct, updated version -->
   <script src="script.js"></script>
 </body>
 </html>
