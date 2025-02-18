@@ -115,3 +115,24 @@ input {
   font-size: 20px;
   color: #333;
 }
+
+#calculateBtn {
+  width: auto;
+  padding: 15px 30px;
+  background: linear-gradient(45deg, #28a745, #218838);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 20px;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#calculateBtn:hover {
+  background: linear-gradient(45deg, #218838, #1e7e34);
+  transform: scale(1.05);
+}
+
