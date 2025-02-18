@@ -389,11 +389,42 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Auto-copy dates when Auto Liability row dates change
-  const autoLiabilityRow = document.querySelector(".auto-liability");
-  if (autoLiabilityRow) {
-    const dateInputs = autoLiabilityRow.querySelectorAll(".effectiveDate, .expirationDate, .endorsementDate");
-    dateInputs.forEach(input => {
-      input.addEventListener("change", autoCopyDates);
-    });
-  }
-});
+  // For the auto liability row, set up auto-fill for dates
+const autoLiabilityRow = document.querySelector(".auto-liability");
+if (autoLiabilityRow) {
+  const effectiveInput = autoLiabilityRow.querySelector(".effectiveDate");
+  const expirationInput = autoLiabilityRow.querySelector(".expirationDate");
+  const endorsementInput = autoLiabilityRow.querySelector(".endorsementDate");
+
+  effectiveInput.addEventListener("change", function () {
+    let eff = new Date(this.value);
+    if (!isNaN(eff.getTime())) {
+      // Auto-fill expiration date as effective date + 1 year
+      let expirationDate = new Date(eff);
+      expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      expirationInput.value = expirationDate.toISOString().split("T")[0];
+    }
+    autoCopyDates();
+  });
+
+  // Also, if expiration or endorsement dates change manually, copy them to other rows
+  expirationInput.addEventListener("change", autoCopyDates);
+  endorsementInput.addEventListener("change", autoCopyDates);
+}
+
+// Auto-copy dates from Auto Liability row to other rows
+function autoCopyDates() {
+  const autoRow = document.querySelector(".auto-liability");
+  if (!autoRow) return;
+  const effVal = autoRow.querySelector(".effectiveDate")?.value;
+  const expVal = autoRow.querySelector(".expirationDate")?.value;
+  const endVal = autoRow.querySelector(".endorsementDate")?.value;
+  if (!effVal && !expVal && !endVal) return;
+  document.querySelectorAll(".coverage-row").forEach(row => {
+    if (!row.classList.contains("auto-liability")) {
+      if (effVal) row.querySelector(".effectiveDate").value = effVal;
+      if (expVal) row.querySelector(".expirationDate").value = expVal;
+      if (endVal) row.querySelector(".endorsementDate").value = endVal;
+    }
+  });
+}
