@@ -390,6 +390,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Auto-copy dates when Auto Liability row dates change
   // For the auto liability row, set up auto-fill for dates
+// For the auto liability row, set up auto-fill for dates
 const autoLiabilityRow = document.querySelector(".auto-liability");
 if (autoLiabilityRow) {
   const effectiveInput = autoLiabilityRow.querySelector(".effectiveDate");
@@ -399,20 +400,22 @@ if (autoLiabilityRow) {
   effectiveInput.addEventListener("change", function () {
     let eff = new Date(this.value);
     if (!isNaN(eff.getTime())) {
-      // Auto-fill expiration date as effective date + 1 year
+      // Calculate expiration date as effective date + 1 year
       let expirationDate = new Date(eff);
       expirationDate.setFullYear(expirationDate.getFullYear() + 1);
+      // Format as YYYY-MM-DD for the input field
       expirationInput.value = expirationDate.toISOString().split("T")[0];
     }
+    // Copy updated dates to other rows
     autoCopyDates();
   });
 
-  // Also, if expiration or endorsement dates change manually, copy them to other rows
+  // Also update other rows when expiration or endorsement dates change
   expirationInput.addEventListener("change", autoCopyDates);
   endorsementInput.addEventListener("change", autoCopyDates);
 }
 
-// Auto-copy dates from Auto Liability row to other rows
+// Function to copy dates from Auto Liability row to all other rows
 function autoCopyDates() {
   const autoRow = document.querySelector(".auto-liability");
   if (!autoRow) return;
