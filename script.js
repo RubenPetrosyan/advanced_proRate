@@ -241,6 +241,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update Total Prorated Amount
     document.getElementById("totalResult").innerText = `$${coverageSum.toFixed(2)}`;
+    // Update Total Broker Fee Result (new result cell)
+    document.getElementById("totalBrokerFeeResult").innerText =
+      "$" + parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)).toFixed(2);
 
     // --- Revised Down-Payment and Financed Amount Calculation ---
     let dpPct = parseFloat(stripNonNumeric(document.getElementById("downpayment").value)) || 0;
@@ -250,7 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const downPaymentDollar = coverageSum * dpRatio;
     document.getElementById("downPaymentDollar").innerText = `$${downPaymentDollar.toFixed(2)}`;
 
-    // Earned Broker Fee remains as before: Total Broker Fee - Financed Broker Fee
+    // Earned Broker Fee: Total Broker Fee - Financed Broker Fee
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
     const finB   = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
     let earnedBF = totalB - finB;
@@ -262,7 +265,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("toBeEarned").innerText = `$${toBeEarned.toFixed(2)}`;
 
     // Financed Amount:
-    // If down-payment is 100% then client pays full amount upfront so financed amount is 0.
+    // If down-payment is 100% then financed amount is 0.
     // Otherwise, financed amount = (coverageSum - downPaymentDollar) + financedBrokerFee.
     let financedAmt = 0;
     if (dpPct === 100) {
