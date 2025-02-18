@@ -223,8 +223,8 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Hide Totals section initially
-    document.getElementById("totalResults").style.display = "none";
+    // Hide any Totals section if present (now removed from UI)
+    // document.getElementById("totalResults").style.display = "none";
 
     // Clamp all percent inputs & check for errors
     document.querySelectorAll(".percent-input").forEach(input => {
@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // Initialize totals
+    // Initialize totals (we still use these internally for per row calculations)
     let coverageSum = 0;
     let totalDownPaymentDollar = 0;
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (commissionDollarField) commissionDollarField.value = "$" + commissionDollar.toFixed(2);
     });
 
-    // Allocate prorated broker fee per row
+    // Allocate prorated broker fee for each row
     coverageRows.forEach(row => {
       let finalAmtField = row.querySelector(".finalAmt");
       if (!finalAmtField || finalAmtField.value === "") return;
@@ -326,14 +326,7 @@ document.addEventListener("DOMContentLoaded", function () {
         proratedBrokerFeeField.value = "$" + proratedBrokerFee.toFixed(2);
     });
 
-    // Update Totals Section
-    document.getElementById("totalResult").innerText = "$" + coverageSum.toFixed(2);
-    document.getElementById("totalBrokerFeeResult").innerText = "$" + totalB.toFixed(2);
-    document.getElementById("totalDownPaymentDollar").innerText = "$" + totalDownPaymentDollar.toFixed(2);
-    document.getElementById("earnedBrokerFee").innerText = "$" + totalEarnedBrokerFee.toFixed(2);
-    const toBeEarned = totalDownPaymentDollar + totalEarnedBrokerFee;
-    document.getElementById("toBeEarned").innerText = "$" + toBeEarned.toFixed(2);
-
+    // Update Financed Amount and Monthly Payment calculations (if needed)
     let financedAmt = 0;
     if (totalDownPaymentDollar >= coverageSum) {
       financedAmt = 0;
@@ -341,8 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
       financedAmt = (coverageSum - totalDownPaymentDollar) + finB;
       if (financedAmt < 0) financedAmt = 0;
     }
-    document.getElementById("financedAmount").innerText = "$" + financedAmt.toFixed(2);
-
+    // Update monthly payment calculation
     let aprRaw = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
     let nPays = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
     if (nPays < 1) nPays = 1;
@@ -357,8 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     document.getElementById("monthlyPayment").innerText = "$" + monthlyPay.toFixed(2);
 
-    // Show Totals Section
-    document.getElementById("totalResults").style.display = "flex";
+    // Note: Totals section UI is removed.
   }
 
   // ------------------- EVENT LISTENERS -------------------
