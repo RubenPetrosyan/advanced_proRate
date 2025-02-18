@@ -3,129 +3,224 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Policy Proration Example</title>
+  <title>Truck Insurance ProRate Calculator</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="container">
+    <h1>Truck Insurance ProRate Calculator</h1>
 
-    <h1>Policy 1 - Proration Example</h1>
-    
-    <!-- POLICY DATES -->
-    <div class="policy-info">
-      <label>Effective Date:
-        <input type="date" id="effDate" />
+    <!-- General Fields -->
+    <div class="general-fields">
+      <label>
+        CLIENT:
+        <input type="text" id="clientName" placeholder="Enter client name" />
       </label>
-      <label>Expiration Date:
-        <input type="date" id="expDate" />
+      <label>Total Broker Fee:
+        <input type="text" value="0" id="totalBrokerFee" class="dollar-input" />
       </label>
-      <label>Endorsement Date:
-        <input type="date" id="endorsementDate" />
+      <label>Financed Broker Fee:
+        <input type="text" value="0" id="financedBrokerFee" class="dollar-input" />
       </label>
+      <label>APR %:
+        <input type="text" value="10" id="apr" class="percent-input" />
+      </label>
+      <label>No of Payments:
+        <input type="text" value="9" id="numPayments" class="numPay-input" />
+      </label>
+      <div class="payment-status-group">
+        <span class="payment-status-label">Payment Status:</span>
+        <div class="payment-status">
+          <input type="radio" id="paymentYes" name="paymentStatus" value="yes" checked>
+          <label for="paymentYes">YES</label>
+          <input type="radio" id="paymentNo" name="paymentStatus" value="no">
+          <label for="paymentNo">NO</label>
+        </div>
+      </div>
     </div>
 
-    <!-- HIDDEN COVERAGE DATA (for proration logic) -->
-    <!-- You can store more coverage info here if needed (e.g., TIV, Rate%, Commission%, etc.). -->
-    <div class="hidden-calculation-fields">
-      <input type="hidden" id="rawPremium" value="10000" />
-      <input type="hidden" id="rawCarrierTaxPct" value="5" />
-      <input type="hidden" id="rawCarrierFee" value="500" />
-    </div>
-
-    <!-- TABLE OF LINE ITEMS -->
+    <!-- Coverage Table -->
     <div class="table-wrapper">
-      <table class="policy-line-items">
+      <table>
         <thead>
           <tr>
-            <th>Line Item</th>
-            <th>Amount in $</th>
-            <th>Down Payment %</th>
-            <th>Down Payment $</th>
+            <th>Coverage</th>
+            <th>Premium/TIV</th>
+            <th>Rate%</th>
+            <th>Carrier Tax%</th>
+            <th>Carrier Tax$</th>
+            <th>Carrier Fee$</th>
+            <th>Commission%</th>
+            <th>Down-Payment%</th>
+            <th>Down-Payment$</th>
+            <th>Effective Date</th>
+            <th>Expiration Date</th>
+            <th>Endorsement Date</th>
+            <!-- New Result Columns -->
+            <th>Final Amt</th>
+            <th>Prorated Carrier TAX</th>
+            <th>Prorated Broker Fee</th>
+            <th>Commission $</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- 1) Premium Amount row -->
-          <tr id="premiumRow">
-            <td>Premium Amount</td>
-            <!-- Will be auto-filled with (final coverage - prorated tax) -->
+        <tbody id="coverageContainer">
+          <!-- 1) Auto Liability (no Rate% input for Auto Liability) -->
+          <tr class="coverage-row auto-liability">
+            <td>Auto Liability</td>
             <td>
-              <input type="text" class="mainAmt" id="premiumAmount" value="0" readonly />
+              <input type="text" value="0" class="premium dollar-input" />
+              <!-- TIV hidden for Auto Liability -->
+              <input type="text" value="0" class="tiv dollar-input" style="display:none;" />
             </td>
-            <!-- We’ll apply the bidirectional DP logic here -->
+            <td>-</td>
             <td>
-              <input type="text" class="dpPct" id="premiumDownPct" value="20" />
+              <input type="text" value="0" class="carrierTax percent-input" />
             </td>
             <td>
-              <input type="text" class="dpAmt" id="premiumDownAmt" value="0" />
+              <input type="text" value="0" class="carrierTaxDollar dollar-input" />
             </td>
+            <td>
+              <input type="text" value="0" class="carrierFee dollar-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="commissionPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayDollar dollar-input" />
+            </td>
+            <td><input type="date" class="effectiveDate" /></td>
+            <td><input type="date" class="expirationDate" /></td>
+            <td><input type="date" class="endorsementDate" /></td>
+            <!-- Result Fields -->
+            <td><input type="text" class="finalAmt result-input" readonly /></td>
+            <td><input type="text" class="proratedTax result-input" readonly /></td>
+            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
+            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
-          <!-- 2) Policy Fees row -->
-          <tr id="policyFeesRow">
-            <td>Policy Fees</td>
-            <!-- The user can enter or edit this. We won't auto-fill. -->
+
+          <!-- 2) General Liability -->
+          <tr class="coverage-row">
+            <td>General Liability</td>
             <td>
-              <input type="text" class="mainAmt" id="policyFees" value="0" />
+              <input type="text" value="0" class="premium dollar-input" />
+            </td>
+            <td>-</td>
+            <td>
+              <input type="text" value="0" class="carrierTax percent-input" />
             </td>
             <td>
-              <input type="text" class="dpPct" id="policyFeesDownPct" value="100" />
+              <input type="text" value="0" class="carrierTaxDollar dollar-input" />
             </td>
             <td>
-              <input type="text" class="dpAmt" id="policyFeesDownAmt" value="0" />
+              <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
+            <td>
+              <input type="text" value="0" class="commissionPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayDollar dollar-input" />
+            </td>
+            <td><input type="date" class="effectiveDate" /></td>
+            <td><input type="date" class="expirationDate" /></td>
+            <td><input type="date" class="endorsementDate" /></td>
+            <!-- Result Fields -->
+            <td><input type="text" class="finalAmt result-input" readonly /></td>
+            <td><input type="text" class="proratedTax result-input" readonly /></td>
+            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
+            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
-          <!-- 3) Broker Fees row -->
-          <tr id="brokerFeesRow">
-            <td>Broker Fees</td>
+
+          <!-- 3) Cargo -->
+          <tr class="coverage-row">
+            <td>Cargo</td>
             <td>
-              <input type="text" class="mainAmt" id="brokerFees" value="0" />
+              <input type="text" value="0" class="premium dollar-input" />
+            </td>
+            <td>-</td>
+            <td>
+              <input type="text" value="0" class="carrierTax percent-input" />
             </td>
             <td>
-              <input type="text" class="dpPct" id="brokerFeesDownPct" value="100" />
+              <input type="text" value="0" class="carrierTaxDollar dollar-input" />
             </td>
             <td>
-              <input type="text" class="dpAmt" id="brokerFeesDownAmt" value="0" />
+              <input type="text" value="0" class="carrierFee dollar-input" />
             </td>
+            <td>
+              <input type="text" value="0" class="commissionPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayPct percent-input" />
+            </td>
+            <td>
+              <input type="text" value="0" class="downPayDollar dollar-input" />
+            </td>
+            <td><input type="date" class="effectiveDate" /></td>
+            <td><input type="date" class="expirationDate" /></td>
+            <td><input type="date" class="endorsementDate" /></td>
+            <!-- Result Fields -->
+            <td><input type="text" class="finalAmt result-input" readonly /></td>
+            <td><input type="text" class="proratedTax result-input" readonly /></td>
+            <td><input type="text" class="proratedBrokerFee result-input" readonly /></td>
+            <td><input type="text" class="commissionDollar result-input" readonly /></td>
           </tr>
-          <!-- 4) Taxes row -->
-          <tr id="taxesRow">
-            <td>Taxes</td>
-            <!-- Will be auto-filled with prorated carrier tax -->
-            <td>
-              <input type="text" class="mainAmt" id="taxesAmount" value="0" readonly />
-            </td>
-            <td>
-              <input type="text" class="dpPct" id="taxesDownPct" value="0" />
-            </td>
-            <td>
-              <input type="text" class="dpAmt" id="taxesDownAmt" value="0" />
-            </td>
-          </tr>
-          <!-- 5) Agency Fees row -->
-          <tr id="agencyFeesRow">
-            <td>Agency Fees</td>
-            <td>
-              <input type="text" class="mainAmt" id="agencyFees" value="0" />
-            </td>
-            <td>
-              <input type="text" class="dpPct" id="agencyFeesDownPct" value="0" />
-            </td>
-            <td>
-              <input type="text" class="dpAmt" id="agencyFeesDownAmt" value="0" />
-            </td>
-          </tr>
+
+          <!-- Additional rows (Trailer Interchange, Non-Trucking Liability, Other, Physical Damage) follow the same structure -->
+          <!-- ... -->
         </tbody>
       </table>
     </div>
 
-    <!-- BUTTONS / ACTIONS -->
-    <button id="calculateBtn">Calculate</button>
-
-    <!-- OPTIONAL: Display a final total or summary -->
-    <div id="summarySection" style="margin-top: 20px;">
-      <h3>Summary</h3>
-      <p id="summaryText"></p>
+    <!-- Totals Section -->
+    <div id="totalResults" class="results-container" style="display:none;">
+      <!-- Left Column -->
+      <div class="result-column left-column">
+        <div class="result-cell">
+          <strong>Total Prorated Amount</strong>
+          <span id="totalResult"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total Broker Fee</strong>
+          <span id="totalBrokerFeeResult"></span>
+        </div>
+      </div>
+      
+      <!-- Center Column -->
+      <div class="result-column center-column">
+        <div class="result-cell">
+          <strong>Total Down-Payment ($)</strong>
+          <span id="totalDownPaymentDollar"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total Earned Broker Fee</strong>
+          <span id="earnedBrokerFee"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total To Be Earned</strong>
+          <span id="toBeEarned"></span>
+        </div>
+      </div>
+      
+      <!-- Right Column -->
+      <div class="result-column right-column">
+        <div class="result-cell">
+          <strong>Financed Amount</strong>
+          <span id="financedAmount"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Monthly Payment</strong>
+          <span id="monthlyPayment"></span>
+        </div>
+      </div>
     </div>
 
+    <button id="calculateBtn">Calculate</button>
   </div>
 
   <script src="script.js"></script>
