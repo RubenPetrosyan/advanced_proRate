@@ -1,3 +1,4 @@
+/* Base Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -18,6 +19,7 @@ h1 {
     text-align: center;
 }
 
+/* General Fields */
 .general-fields {
     display: flex;
     flex-wrap: wrap;
@@ -38,11 +40,18 @@ h1 {
     margin-right: 5px;
 }
 
+/* Table Wrapper for responsiveness */
+.table-wrapper {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
     background: white;
     border-radius: 5px;
+    min-width: 800px; /* Ensure table has a minimum width for all columns */
 }
 
 thead {
@@ -56,6 +65,7 @@ th, td {
     text-align: center;
 }
 
+/* Input Styles */
 input {
     width: 90%;
     padding: 5px;
@@ -64,8 +74,10 @@ input {
     text-align: center;
 }
 
+/* Results Container */
 .results-container {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   margin-top: 20px;
   padding: 15px;
@@ -78,6 +90,7 @@ input {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  min-width: 200px;
 }
 
 .result-cell {
@@ -102,6 +115,7 @@ input {
   color: #333;
 }
 
+/* Calculate Button */
 #calculateBtn {
   width: auto;
   padding: 15px 30px;
@@ -120,4 +134,31 @@ input {
 #calculateBtn:hover {
   background: linear-gradient(45deg, #218838, #1e7e34);
   transform: scale(1.05);
+}
+
+/* Media Queries for Smaller Screens */
+@media (max-width: 768px) {
+  .general-fields {
+    flex-direction: column;
+  }
+
+  .general-fields label {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .result-column {
+    min-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  th, td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  input {
+    width: 100%;
+  }
 }
