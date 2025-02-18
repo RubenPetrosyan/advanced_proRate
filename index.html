@@ -30,12 +30,16 @@
       </label>
       <label>
         Payment Status:
-        <div class="payment-status">
-          <label><input type="radio" name="paymentStatus" value="yes" checked /> YES</label>
-          <label><input type="radio" name="paymentStatus" value="no" /> NO</label>
-        </div>
-      </label>
-    </div>
+        <div class="payment-status-group">
+  <span class="payment-status-label">Payment Status:</span>
+  <div class="payment-status">
+    <input type="radio" id="paymentYes" name="paymentStatus" value="yes" checked>
+    <label for="paymentYes">YES</label>
+    <input type="radio" id="paymentNo" name="paymentStatus" value="no">
+    <label for="paymentNo">NO</label>
+  </div>
+</div>
+
 
     <!-- Coverage Table -->
     <table>
