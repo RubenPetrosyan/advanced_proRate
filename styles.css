@@ -20,6 +20,7 @@ h1 {
 
 .general-fields {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     margin-bottom: 20px;
 }
@@ -29,6 +30,12 @@ h1 {
     display: flex;
     flex-direction: column;
     margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.payment-status label {
+    font-weight: normal;
+    margin-right: 5px;
 }
 
 table {
@@ -47,27 +54,6 @@ th, td {
     padding: 10px;
     border: 1px solid #ccc;
     text-align: center;
-}
-
-.apply-btn-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 5px;
-}
-
-.applyToAll {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 5px 8px;
-    font-size: 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    white-space: nowrap;
-}
-
-.applyToAll:hover {
-    background-color: #0056b3;
 }
 
 input {
@@ -135,4 +121,3 @@ input {
   background: linear-gradient(45deg, #218838, #1e7e34);
   transform: scale(1.05);
 }
-
