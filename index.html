@@ -12,49 +12,32 @@
 
     <!-- General Fields -->
     <div class="general-fields">
+      <label>
+        CLIENT:
+        <input type="text" id="clientName" placeholder="Enter client name" />
+      </label>
       <label>Total Broker Fee:
-        <input
-          type="text"
-          value="0"
-          id="totalBrokerFee"
-          class="dollar-input"
-        />
+        <input type="text" value="0" id="totalBrokerFee" class="dollar-input" />
       </label>
       <label>Financed Broker Fee:
-        <input
-          type="text"
-          value="0"
-          id="financedBrokerFee"
-          class="dollar-input"
-        />
-      </label>
-      <label>Down-Payment %:
-        <input
-          type="text"
-          value="0"
-          id="downpayment"
-          class="percent-input"
-        />
+        <input type="text" value="0" id="financedBrokerFee" class="dollar-input" />
       </label>
       <label>APR %:
-        <input
-          type="text"
-          value="10"
-          id="apr"
-          class="percent-input"
-        />
+        <input type="text" value="10" id="apr" class="percent-input" />
       </label>
       <label>No of Payments:
-        <input
-          type="text"
-          value="9"
-          id="numPayments"
-          class="numPay-input"
-        />
+        <input type="text" value="9" id="numPayments" class="numPay-input" />
+      </label>
+      <label>
+        Payment Status:
+        <div class="payment-status">
+          <label><input type="radio" name="paymentStatus" value="yes" checked /> YES</label>
+          <label><input type="radio" name="paymentStatus" value="no" /> NO</label>
+        </div>
       </label>
     </div>
 
-    <!-- Coverage Table (all 8 rows) -->
+    <!-- Coverage Table -->
     <table>
       <thead>
         <tr>
@@ -62,7 +45,11 @@
           <th>Premium/TIV</th>
           <th>Rate%</th>
           <th>Carrier Tax%</th>
+          <th>Carrier Tax$</th>
           <th>Carrier Fee$</th>
+          <th>Commission%</th>
+          <th>Down-Payment%</th>
+          <th>Down-Payment$</th>
           <th>Effective Date</th>
           <th>Expiration Date</th>
           <th>Endorsement Date</th>
@@ -74,45 +61,39 @@
         <tr class="coverage-row auto-liability">
           <td>Auto Liability</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
-          </td>
-          <!-- No Rate % for Auto Liability, so just show '-' -->
-          <td>-</td>
-          <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
+            <!-- For TIV-based row, a separate TIV field is used -->
+            <input type="text" value="0" class="tiv dollar-input" placeholder="TIV" style="display:none;" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="rate percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierTax percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td>
             <input type="date" class="effectiveDate" />
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="effective">📅 Apply to All</button>
-            </div>
           </td>
           <td>
             <input type="date" class="expirationDate" />
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="expiration">📅 Apply to All</button>
-            </div>
           </td>
           <td>
             <input type="date" class="endorsementDate" />
-            <div class="apply-btn-container">
-              <button class="applyToAll" data-type="endorsement">📅 Apply to All</button>
-            </div>
           </td>
           <td class="result"></td>
         </tr>
@@ -121,26 +102,26 @@
         <tr class="coverage-row">
           <td>General Liability</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
           </td>
           <td>-</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -152,26 +133,26 @@
         <tr class="coverage-row">
           <td>Cargo</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
           </td>
           <td>-</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -183,26 +164,26 @@
         <tr class="coverage-row">
           <td>Trailer Interchange</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
           </td>
           <td>-</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -214,26 +195,26 @@
         <tr class="coverage-row">
           <td>Non-Trucking Liability</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
           </td>
           <td>-</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -245,26 +226,26 @@
         <tr class="coverage-row">
           <td>Other</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="premium dollar-input"
-            />
+            <input type="text" value="0" class="premium dollar-input" />
           </td>
           <td>-</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -276,33 +257,29 @@
         <tr class="coverage-row tiv-row">
           <td>Physical Damage (TIV)</td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="tiv dollar-input"
-            />
-          </td>
-          <!-- Rate % -->
-          <td>
-            <input
-              type="text"
-              value="0"
-              class="rate percent-input"
-            />
+            <!-- For TIV row, show the TIV input and hide the premium input -->
+            <input type="text" value="0" class="tiv dollar-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierTax percent-input"
-            />
+            <input type="text" value="0" class="rate percent-input" />
           </td>
           <td>
-            <input
-              type="text"
-              value="0"
-              class="carrierFee dollar-input"
-            />
+            <input type="text" value="0" class="carrierTax percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierTaxDollar dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="carrierFee dollar-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="commissionPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayPct percent-input" />
+          </td>
+          <td>
+            <input type="text" value="0" class="downPayDollar dollar-input" />
           </td>
           <td><input type="date" class="effectiveDate" /></td>
           <td><input type="date" class="expirationDate" /></td>
@@ -312,52 +289,52 @@
       </tbody>
     </table>
 
-<!-- Final Results Section -->
-<div class="results-container">
-  <!-- Left Column -->
-  <div class="result-column left-column">
-    <div class="result-cell">
-      <strong>Total Prorated Amount</strong>
-      <span id="totalResult">$0.00</span>
+    <!-- Total Results Section (hidden by default) -->
+    <div id="totalResults" class="results-container" style="display:none;">
+      <!-- Left Column -->
+      <div class="result-column left-column">
+        <div class="result-cell">
+          <strong>Total Prorated Amount</strong>
+          <span id="totalResult"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total Broker Fee</strong>
+          <span id="totalBrokerFeeResult"></span>
+        </div>
+      </div>
+      
+      <!-- Center Column -->
+      <div class="result-column center-column">
+        <div class="result-cell">
+          <strong>Total Down-Payment ($)</strong>
+          <span id="totalDownPaymentDollar"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total Earned Broker Fee</strong>
+          <span id="earnedBrokerFee"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Total To Be Earned</strong>
+          <span id="toBeEarned"></span>
+        </div>
+      </div>
+      
+      <!-- Right Column -->
+      <div class="result-column right-column">
+        <div class="result-cell">
+          <strong>Financed Amount</strong>
+          <span id="financedAmount"></span>
+        </div>
+        <div class="result-cell">
+          <strong>Monthly Payment</strong>
+          <span id="monthlyPayment"></span>
+        </div>
+      </div>
     </div>
-    <div class="result-cell">
-      <strong>Total Broker Fee</strong>
-      <span id="totalBrokerFeeResult">$0.00</span>
-    </div>
-  </div>
-  
-  <!-- Center Column -->
-  <div class="result-column center-column">
-    <div class="result-cell">
-      <strong>DownPayment</strong>
-      <span id="downPaymentDollar">$0.00</span>
-    </div>
-    <div class="result-cell">
-      <strong>Earned Broker Fee</strong>
-      <span id="earnedBrokerFee">$0.00</span>
-    </div>
-    <div class="result-cell">
-      <strong>To Be Earned</strong>
-      <span id="toBeEarned">$0.00</span>
-    </div>
-  </div>
-  
-  <!-- Right Column -->
-  <div class="result-column right-column">
-    <div class="result-cell">
-      <strong>Financed Amount</strong>
-      <span id="financedAmount">$0.00</span>
-    </div>
-    <div class="result-cell">
-      <strong>Monthly Payment</strong>
-      <span id="monthlyPayment">$0.00</span>
-    </div>
-  </div>
-</div>
 
-<button id="calculateBtn">Calculate</button>
+    <button id="calculateBtn">Calculate</button>
+  </div>
 
-  <!-- Make sure script.js is the correct, updated version -->
   <script src="script.js"></script>
 </body>
 </html>
