@@ -94,7 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
         let raw = stripNonNumeric(this.value);
         const parts = raw.split(".");
         if (parts.length > 2) {
-          // remove extra dots
           raw = parts[0] + "." + parts.slice(1).join("");
         }
         if (this.classList.contains("percent-input")) {
@@ -214,15 +213,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const premiumField = row.querySelector(".premium");
         premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
       }
-      if (premium <= 0) return; // Only for valid rows
+      if (premium <= 0) return;
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
       
-      // Retrieve extra data from main calc dataset
+      // Retrieve extra data from main calculation dataset
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee      = row.dataset.policyFee      || "0.00";
       let proratedTax    = row.dataset.proratedTax    || "0.00";
 
-      // For Auto Liability, include Broker Fee row
+      // For Auto Liability rows, include Broker Fee row; others (including TIV) get 3 rows.
       let isAuto = row.classList.contains("auto-liability");
       let brokerFeeHtml = "";
       if (isAuto) {
@@ -240,28 +239,17 @@ document.addEventListener("DOMContentLoaded", function () {
           </tr>
         `;
       }
-
+      
       // Commission row (applies to ALL coverages)
-      // Commission is always based on the Prorated Premium amount
-      // We add a row with 4 columns:
-      //   - "Commission"
-      //   - "Amount $" = same as prorated premium
-      //   - "Commission %" = user input (required)
-      //   - "Commission $" = computed
       let commissionRowHtml = `
         <tr data-line="commission">
           <td>Commission</td>
           <td><input type="text" class="sec-commBase" value="${proratedPremium}" readonly /></td>
-          <td>
-            <input type="text" class="sec-commPct" value="" placeholder="Commission %" />
-          </td>
-          <td>
-            <input type="text" class="sec-commDollar" value="0" placeholder="$" readonly />
-          </td>
+          <td><input type="text" class="sec-commPct" value="" placeholder="Commission %" /></td>
+          <td><input type="text" class="sec-commDollar" value="0" placeholder="$" readonly /></td>
         </tr>
       `;
-
-      // Build the coverage block
+      
       let blockHtml = `
         <div class="secondary-block" data-last-edited="pct">
           <h3>${coverageName} - Secondary Calculator</h3>
@@ -307,8 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </tr>
             </tbody>
           </table>
-
-          <!-- Commission row (4 columns) -->
+          <!-- Commission Table -->
           <table>
             <thead>
               <tr>
@@ -322,18 +309,16 @@ document.addEventListener("DOMContentLoaded", function () {
               ${commissionRowHtml}
             </tbody>
           </table>
-
           <button class="sec-calcDP">Calculate DP</button>
         </div>
       `;
       secContainer.innerHTML += blockHtml;
     });
-
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-
-    // Focus event: record last-edited for DP rows
+    
+    // Attach focus event listeners for bidirectional updates in secondary blocks
     document.querySelectorAll(".secondary-block").forEach(block => {
       block.querySelectorAll(".sec-dpPct, .sec-dpAmt").forEach(input => {
         input.addEventListener("focus", function () {
@@ -346,50 +331,40 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       });
     });
-
-    // Event delegation for "Calculate DP" in secondary blocks
+    
+    // Use event delegation for the "Calculate DP" button in secondary blocks
     document.getElementById("secondaryBlocks").addEventListener("click", function(e) {
       if (e.target && e.target.matches(".sec-calcDP")) {
         const block = e.target.closest(".secondary-block");
         const lastEdited = block.dataset.lastEdited || "pct";
 
-        // 1) Validate Commission% and compute Commission$
+        // First, process Commission row separately.
         const commRow = block.querySelector('tr[data-line="commission"]');
         if (commRow) {
-          let commBaseEl = commRow.querySelector(".sec-commBase");
-          let commPctEl  = commRow.querySelector(".sec-commPct");
-          let commDolEl  = commRow.querySelector(".sec-commDollar");
-
-          let commBase = parseFloat(stripNonNumeric(commBaseEl.value)) || 0;
-          let commPct  = parseFloat(stripNonNumeric(commPctEl.value));
-
-          // If Commission% is blank or NaN, show error
-          if (isNaN(commPct)) {
-            showError(commPctEl, "Commission% is required.");
-            return; // skip the rest
+          let baseEl = commRow.querySelector(".sec-commBase");
+          let pctEl  = commRow.querySelector(".sec-commPct");
+          let dolEl  = commRow.querySelector(".sec-commDollar");
+          let baseVal = parseFloat(stripNonNumeric(baseEl.value)) || 0;
+          let pctVal  = parseFloat(stripNonNumeric(pctEl.value));
+          if (isNaN(pctVal)) {
+            showError(pctEl, "Commission% is required.");
+            return;
           } else {
-            clearError(commPctEl);
+            clearError(pctEl);
           }
-          // clamp if needed
-          if (commPct < 0) commPct = 0;
-          if (commPct > 100) commPct = 100;
-          let commDollar = commBase * (commPct / 100);
-          commDolEl.value = commDollar.toFixed(2);
+          if (pctVal < 0) pctVal = 0;
+          if (pctVal > 100) pctVal = 100;
+          let commDollar = baseVal * (pctVal / 100);
+          dolEl.value = commDollar.toFixed(2);
         }
-
-        // 2) For each row in the block (prorated premium, policy fee, broker fee, tax),
-        //    do the DP calculation based on lastEdited
-        block.querySelectorAll("tbody tr").forEach(tr => {
-          const lineName = tr.dataset.line;
-          if (!lineName) return; // skip
-          // skip the "commission" row in this table; we already handled it
-          if (lineName === "commission") return;
-
+        
+        // Then, process other rows in the first table.
+        block.querySelectorAll("table:nth-of-type(1) tbody tr").forEach(tr => {
+          const line = tr.dataset.line;
+          if (!line) return; // skip if not defined
           const amountInput = tr.querySelector(".sec-amount");
           const dpPctInput = tr.querySelector(".sec-dpPct");
           const dpAmtInput = tr.querySelector(".sec-dpAmt");
-          if (!amountInput || !dpPctInput || !dpAmtInput) return; // skip commission row
-
           let amount = parseFloat(stripNonNumeric(amountInput.value)) || 0;
           if (lastEdited === "pct") {
             let dpPct = parseFloat(stripNonNumeric(dpPctInput.value)) || 0;
@@ -402,250 +377,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
       }
     });
-  }
-
-  // ------------------- PRODUCER QUOTE FUNCTION -------------------
-  function generateProducerQuote() {
-    // Gather data from each .secondary-block
-    const blocks = document.querySelectorAll(".secondary-block");
-    if (!blocks.length) {
-      alert("No data in secondary calculator. Please Calculate Main and then fill Secondary blocks first.");
-      return;
-    }
-
-    // We'll store coverage lines, each with an array of line items
-    let coverageData = [];
-    let pageTotals = {
-      premiumAmt: 0,
-      dpAmt: 0,
-      financed: 0,
-      payProducer: 0,
-      payGenAgent: 0
-    };
-
-    blocks.forEach(block => {
-      let coverageName = block.querySelector("h3")?.innerText || "Unknown Coverage";
-      let coverageItems = [];
-      let coverageTotals = {
-        premiumAmt: 0,
-        dpAmt: 0,
-        financed: 0,
-        payProducer: 0,
-        payGenAgent: 0
-      };
-
-      // 1) Gather the "main table" rows
-      let mainRows = block.querySelectorAll('table:nth-of-type(1) tbody tr');
-      mainRows.forEach(tr => {
-        let lineName = tr.dataset.line || "";
-        let mappedName = mapLineItemName(lineName);
-        let amtEl  = tr.querySelector(".sec-amount");
-        let pctEl  = tr.querySelector(".sec-dpPct");
-        let dpEl   = tr.querySelector(".sec-dpAmt");
-
-        let amtVal  = parseFloat(stripNonNumeric(amtEl?.value)) || 0;
-        let pctVal  = parseFloat(stripNonNumeric(pctEl?.value)) || 0;
-        let dpVal   = parseFloat(stripNonNumeric(dpEl?.value)) || 0;
-        let financed = amtVal - dpVal;
-
-        // For demonstration, Pay Producer = dpVal, Pay Gen Agent = financed
-        coverageTotals.premiumAmt  += amtVal;
-        coverageTotals.dpAmt       += dpVal;
-        coverageTotals.financed    += financed;
-        coverageTotals.payProducer += dpVal;
-        coverageTotals.payGenAgent += financed;
-
-        coverageItems.push({
-          name: mappedName,
-          amt: amtVal,
-          dpPct: pctVal,
-          dpVal: dpVal,
-          financed: financed,
-          payProducer: dpVal,
-          payGenAgent: financed
-        });
-      });
-
-      // 2) Gather Commission row from second table
-      let commRow = block.querySelector('tr[data-line="commission"]');
-      if (commRow) {
-        let lineName = "Commission";
-        let mappedName = "COMMISSION"; // or mapLineItemName("Commission") if you prefer
-        let baseEl = commRow.querySelector(".sec-commBase");
-        let pctEl  = commRow.querySelector(".sec-commPct");
-        let dolEl  = commRow.querySelector(".sec-commDollar");
-
-        let baseVal  = parseFloat(stripNonNumeric(baseEl?.value)) || 0;
-        let pctVal   = parseFloat(stripNonNumeric(pctEl?.value));
-        let commVal  = parseFloat(stripNonNumeric(dolEl?.value)) || 0;
-
-        if (isNaN(pctVal)) {
-          pctVal = 0; // or handle error if needed
-        }
-
-        // For demonstration, let's treat "commission" as an item with financed=0, payProducer=commVal, payGenAgent=0
-        coverageTotals.premiumAmt  += baseVal; // or not? Typically you'd not sum Commission as "premium amt"
-        coverageTotals.payProducer += commVal;
-
-        coverageItems.push({
-          name: mappedName,
-          amt: baseVal,
-          dpPct: pctVal,
-          dpVal: commVal,
-          financed: 0,
-          payProducer: commVal,
-          payGenAgent: 0
-        });
-      }
-
-      // Update pageTotals
-      pageTotals.premiumAmt   += coverageTotals.premiumAmt;
-      pageTotals.dpAmt        += coverageTotals.dpAmt;
-      pageTotals.financed     += coverageTotals.financed;
-      pageTotals.payProducer  += coverageTotals.payProducer;
-      pageTotals.payGenAgent  += coverageTotals.payGenAgent;
-
-      coverageData.push({
-        coverageName,
-        items: coverageItems,
-        totals: coverageTotals
-      });
-    });
-
-    // Build HTML for new tab
-    let newTab = window.open("", "_blank");
-    if (!newTab) {
-      alert("Pop-up blocked. Please allow pop-ups for this site.");
-      return;
-    }
-
-    let html = `
-    <html>
-    <head>
-      <title>Producer Quote</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 20px;
-        }
-        h1, h2 {
-          text-align: center;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 25px;
-        }
-        th, td {
-          border: 1px solid #ccc;
-          padding: 8px;
-          text-align: right;
-        }
-        th {
-          background-color: #f2f2f2;
-        }
-        .lineName {
-          text-align: left;
-        }
-        .totalsRow {
-          font-weight: bold;
-          background-color: #fafafa;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Producer Quote</h1>
-    `;
-
-    // For each coverage, build a table
-    coverageData.forEach(coverage => {
-      html += `
-        <h2>${coverage.coverageName}</h2>
-        <table>
-          <thead>
-            <tr>
-              <th class="lineName">Line Item</th>
-              <th>Premium Amount</th>
-              <th>Down Payment %</th>
-              <th>Down Payment</th>
-              <th>Amount Financed</th>
-              <th>Pay: Producer</th>
-              <th>Pay: Gen Agent</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      coverage.items.forEach(item => {
-        html += `
-          <tr>
-            <td class="lineName">${item.name}</td>
-            <td>${item.amt.toFixed(2)}</td>
-            <td>${item.dpPct.toFixed(2)}</td>
-            <td>${item.dpVal.toFixed(2)}</td>
-            <td>${item.financed.toFixed(2)}</td>
-            <td>${item.payProducer.toFixed(2)}</td>
-            <td>${item.payGenAgent.toFixed(2)}</td>
-          </tr>
-        `;
-      });
-      html += `
-          <tr class="totalsRow">
-            <td class="lineName">Total for ${coverage.coverageName}</td>
-            <td>${coverage.totals.premiumAmt.toFixed(2)}</td>
-            <td>-</td>
-            <td>${coverage.totals.dpAmt.toFixed(2)}</td>
-            <td>${coverage.totals.financed.toFixed(2)}</td>
-            <td>${coverage.totals.payProducer.toFixed(2)}</td>
-            <td>${coverage.totals.payGenAgent.toFixed(2)}</td>
-          </tr>
-        </tbody>
-        </table>
-      `;
-    });
-
-    // Page Totals
-    html += `
-      <table>
-        <thead>
-          <tr>
-            <th class="lineName">Page Totals</th>
-            <th>Premium Amount</th>
-            <th>Down Payment %</th>
-            <th>Down Payment</th>
-            <th>Amount Financed</th>
-            <th>Pay: Producer</th>
-            <th>Pay: Gen Agent</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="totalsRow">
-            <td class="lineName">Page Totals</td>
-            <td>${pageTotals.premiumAmt.toFixed(2)}</td>
-            <td>-</td>
-            <td>${pageTotals.dpAmt.toFixed(2)}</td>
-            <td>${pageTotals.financed.toFixed(2)}</td>
-            <td>${pageTotals.payProducer.toFixed(2)}</td>
-            <td>${pageTotals.payGenAgent.toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
-    `;
-
-    html += `</body></html>`;
-    newTab.document.write(html);
-    newTab.document.close();
-  }
-
-  // Helper to map line items
-  function mapLineItemName(lineItem) {
-    // e.g. "proratedpremium" => "PREMIUM AMOUNT", "commission" => "COMMISSION"
-    let lower = lineItem.toLowerCase();
-    if (lower.includes("proratedpremium")) return "PREMIUM AMOUNT";
-    if (lower.includes("policyfee"))       return "POLICY FEES";
-    if (lower.includes("brokerfee"))       return "BROKER FEES";
-    if (lower.includes("tax"))             return "TAXES";
-    if (lower.includes("commission"))      return "COMMISSION";
-    return lineItem.toUpperCase();
   }
 
   // ------------------- MAIN CALCULATION FUNCTION (Main Calculator) -------------------
@@ -675,9 +406,12 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
     }
-    // Perform main proration
-    let coverageRows = document.querySelectorAll(".coverage-row");
     let coverageSum = 0;
+    const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
+    const finB = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
+    let totalEarnedBrokerFee = totalB - finB;
+    if (totalEarnedBrokerFee < 0) totalEarnedBrokerFee = 0;
+    const coverageRows = document.querySelectorAll(".coverage-row");
     coverageRows.forEach(row => {
       let premium = 0;
       if (row.classList.contains("tiv-row")) {
@@ -705,36 +439,22 @@ document.addEventListener("DOMContentLoaded", function () {
       let totalDays = daysBetween(effDate, expDate);
       let remainDays = daysBetween(endDate, expDate);
       if (totalDays <= 0) return;
-      const taxField = row.querySelector(".carrierTax");
-      const feeField = row.querySelector(".carrierFee");
-      let taxPct = taxField ? parseFloat(stripNonNumeric(taxField.value)) || 0 : 0;
-      let fee    = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
       let proratedPremium = (premium / totalDays) * remainDays;
+      let taxPctField = row.querySelector(".carrierTax");
+      let feeField = row.querySelector(".carrierFee");
+      let taxPct = taxPctField ? parseFloat(stripNonNumeric(taxPctField.value)) || 0 : 0;
+      let fee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
       let proratedCarrierTax = proratedPremium * (taxPct / 100);
       let finalAmt = proratedPremium + proratedCarrierTax + fee;
       coverageSum += finalAmt;
       row.dataset.proratedPremium = proratedPremium.toFixed(2);
-      row.dataset.policyFee       = fee.toFixed(2);
-      row.dataset.proratedTax     = proratedCarrierTax.toFixed(2);
+      row.dataset.policyFee = fee.toFixed(2);
+      row.dataset.proratedTax = proratedCarrierTax.toFixed(2);
     });
-    // Done. Now fill the secondary calculator
     populateSecondaryCalculator();
   }
 
-  // Attach event listeners
-  document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
-  document.getElementById("financedBrokerFee").addEventListener("blur", validateFinancedBrokerFee);
-  document.querySelectorAll(".expirationDate").forEach(expInput => {
-    expInput.addEventListener("blur", validateExpirationDate);
-  });
-
-  // "Producer Quote" button
-  const producerQuoteBtn = document.getElementById("producerQuoteBtn");
-  if (producerQuoteBtn) {
-    producerQuoteBtn.addEventListener("click", generateProducerQuote);
-  }
-
-  // ------------- generateProducerQuote: same logic as before, but now includes Commission row -------------
+  // ------------------- PRODUCER QUOTE FUNCTION -------------------
   function generateProducerQuote() {
     const blocks = document.querySelectorAll(".secondary-block");
     if (!blocks.length) {
@@ -762,7 +482,6 @@ document.addEventListener("DOMContentLoaded", function () {
         payGenAgent: 0
       };
 
-      // First table (prorated premium, policy fee, broker fee, tax)
       let mainRows = block.querySelectorAll('table:nth-of-type(1) tbody tr');
       mainRows.forEach(tr => {
         let line = tr.dataset.line || "";
@@ -787,43 +506,36 @@ document.addEventListener("DOMContentLoaded", function () {
           amt: amtVal,
           dpPct: pctVal,
           dpVal: dpVal,
-          financed,
+          financed: financed,
           payProducer: dpVal,
           payGenAgent: financed
         });
       });
 
-      // Second table has Commission row
-      let secondTable = block.querySelectorAll('table:nth-of-type(2) tbody tr');
-      secondTable.forEach(tr => {
-        let line = tr.dataset.line || "";
-        if (line === "commission") {
-          let baseEl = tr.querySelector(".sec-commBase");
-          let pctEl  = tr.querySelector(".sec-commPct");
-          let dolEl  = tr.querySelector(".sec-commDollar");
+      let commRow = block.querySelector('tr[data-line="commission"]');
+      if (commRow) {
+        let mappedName = "COMMISSION";
+        let baseEl = commRow.querySelector(".sec-commBase");
+        let pctEl  = commRow.querySelector(".sec-commPct");
+        let dolEl  = commRow.querySelector(".sec-commDollar");
 
-          let baseVal = parseFloat(stripNonNumeric(baseEl?.value)) || 0;
-          let pctVal  = parseFloat(stripNonNumeric(pctEl?.value)) || 0;
-          let commVal = parseFloat(stripNonNumeric(dolEl?.value)) || 0;
+        let baseVal = parseFloat(stripNonNumeric(baseEl?.value)) || 0;
+        let pctVal  = parseFloat(stripNonNumeric(pctEl?.value)) || 0;
+        let commVal = parseFloat(stripNonNumeric(dolEl?.value)) || 0;
 
-          // For demonstration, "Commission" is a separate line item
-          coverageItems.push({
-            name: "COMMISSION", // or mapLineItemName("commission")
-            amt: baseVal,
-            dpPct: pctVal,
-            dpVal: commVal,
-            financed: 0,
-            payProducer: commVal,
-            payGenAgent: 0
-          });
+        coverageItems.push({
+          name: mappedName,
+          amt: baseVal,
+          dpPct: pctVal,
+          dpVal: commVal,
+          financed: 0,
+          payProducer: commVal,
+          payGenAgent: 0
+        });
+        coverageTotals.premiumAmt  += baseVal;
+        coverageTotals.payProducer += commVal;
+      }
 
-          // Possibly add it to coverageTotals if you want to see it in the "premiumAmt" total
-          coverageTotals.premiumAmt  += baseVal; // or not, up to your logic
-          coverageTotals.payProducer += commVal;
-        }
-      });
-
-      // Update coverage totals
       pageTotals.premiumAmt   += coverageTotals.premiumAmt;
       pageTotals.dpAmt        += coverageTotals.dpAmt;
       pageTotals.financed     += coverageTotals.financed;
@@ -837,51 +549,30 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
-    // Build new tab
     let newTab = window.open("", "_blank");
     if (!newTab) {
       alert("Pop-up blocked. Please allow pop-ups for this site.");
       return;
     }
+
     let html = `
     <html>
     <head>
       <title>Producer Quote</title>
       <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 20px;
-        }
-        h1, h2 {
-          text-align: center;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 25px;
-        }
-        th, td {
-          border: 1px solid #ccc;
-          padding: 8px;
-          text-align: right;
-        }
-        th {
-          background-color: #f2f2f2;
-        }
-        .lineName {
-          text-align: left;
-        }
-        .totalsRow {
-          font-weight: bold;
-          background-color: #fafafa;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
+        th { background-color: #f2f2f2; }
+        .lineName { text-align: left; }
+        .totalsRow { font-weight: bold; background-color: #fafafa; }
       </style>
     </head>
     <body>
       <h1>Producer Quote</h1>
     `;
 
-    // For each coverage
     coverageData.forEach(cov => {
       html += `
         <h2>${cov.coverageName}</h2>
@@ -922,12 +613,11 @@ document.addEventListener("DOMContentLoaded", function () {
             <td>${cov.totals.payProducer.toFixed(2)}</td>
             <td>${cov.totals.payGenAgent.toFixed(2)}</td>
           </tr>
-        </tbody>
+          </tbody>
         </table>
       `;
     });
 
-    // Page Totals
     html += `
       <table>
         <thead>
@@ -954,13 +644,11 @@ document.addEventListener("DOMContentLoaded", function () {
         </tbody>
       </table>
     `;
-
     html += `</body></html>`;
     newTab.document.write(html);
     newTab.document.close();
   }
 
-  // A helper to map coverage row line names to uppercase
   function mapLineItemName(line) {
     let lower = line.toLowerCase();
     if (lower.includes("proratedpremium")) return "PREMIUM AMOUNT";
@@ -971,7 +659,82 @@ document.addEventListener("DOMContentLoaded", function () {
     return line.toUpperCase();
   }
 
-  // EVENT LISTENERS
+  // ------------------- MAIN CALCULATION FUNCTION (Main Calculator) -------------------
+  function calculateProRatedAmounts() {
+    const paymentStatus = document.querySelector('input[name="paymentStatus"]:checked').value;
+    if (paymentStatus === "no") {
+      alert("Error: Client has not completed payments. Proration cannot be calculated.");
+      return;
+    }
+    document.querySelectorAll(".percent-input").forEach(input => {
+      let num = parseFloat(stripNonNumeric(input.value)) || 0;
+      if (num < 0) {
+        num = 0;
+        showError(input, "Percentage cannot be negative. Auto-correcting to 0.");
+      } else if (num > 100) {
+        num = 100;
+        showError(input, "Percentage cannot exceed 100. Auto-correcting to 100.");
+      } else {
+        clearError(input);
+      }
+      input.value = num.toFixed(2);
+    });
+    const errorElements = document.querySelectorAll(".error-message");
+    for (let err of errorElements) {
+      if (err.innerText.trim() !== "") {
+        alert("Please fix validation errors before calculating.");
+        return;
+      }
+    }
+    let coverageSum = 0;
+    const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
+    const finB = parseFloat(stripNonNumeric(document.getElementById("financedBrokerFee").value)) || 0;
+    let totalEarnedBrokerFee = totalB - finB;
+    if (totalEarnedBrokerFee < 0) totalEarnedBrokerFee = 0;
+    const coverageRows = document.querySelectorAll(".coverage-row");
+    coverageRows.forEach(row => {
+      let premium = 0;
+      if (row.classList.contains("tiv-row")) {
+        const tivField = row.querySelector(".tiv");
+        premium = parseFloat(stripNonNumeric(tivField?.value)) || 0;
+      } else {
+        const premiumField = row.querySelector(".premium");
+        premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      }
+      const tivField = row.querySelector(".tiv");
+      const rateField = row.querySelector(".rate");
+      if (tivField && tivField.style.display !== "none") {
+        let tiv = parseFloat(stripNonNumeric(tivField.value)) || 0;
+        let rate = parseFloat(stripNonNumeric(rateField?.value)) || 0;
+        premium = tiv * (rate / 100);
+      }
+      if (premium <= 0) return;
+      const effVal = row.querySelector(".effectiveDate")?.value;
+      const expVal = row.querySelector(".expirationDate")?.value;
+      const endVal = row.querySelector(".endorsementDate")?.value;
+      let effDate = new Date(effVal || "");
+      let expDate = new Date(expVal || "");
+      let endDate = new Date(endVal || "");
+      if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) return;
+      let totalDays = daysBetween(effDate, expDate);
+      let remainDays = daysBetween(endDate, expDate);
+      if (totalDays <= 0) return;
+      let proratedPremium = (premium / totalDays) * remainDays;
+      let taxPctField = row.querySelector(".carrierTax");
+      let feeField = row.querySelector(".carrierFee");
+      let taxPct = taxPctField ? parseFloat(stripNonNumeric(taxPctField.value)) || 0 : 0;
+      let fee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
+      let proratedCarrierTax = proratedPremium * (taxPct / 100);
+      let finalAmt = proratedPremium + proratedCarrierTax + fee;
+      coverageSum += finalAmt;
+      row.dataset.proratedPremium = proratedPremium.toFixed(2);
+      row.dataset.policyFee = fee.toFixed(2);
+      row.dataset.proratedTax = proratedCarrierTax.toFixed(2);
+    });
+    populateSecondaryCalculator();
+  }
+
+  // ------------------- EVENT LISTENERS -------------------
   document.getElementById("calculateBtn").addEventListener("click", calculateProRatedAmounts);
   document.getElementById("financedBrokerFee").addEventListener("blur", validateFinancedBrokerFee);
   document.querySelectorAll(".expirationDate").forEach(expInput => {
