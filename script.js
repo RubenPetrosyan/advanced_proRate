@@ -193,12 +193,11 @@ document.addEventListener("DOMContentLoaded", function () {
     setupCarrierTaxBidirectional(row);
   });
   // ------------------- SECONDARY CALCULATOR SECTION -------------------
-  // For each coverage row (from the main calculator) that has a premium,
-  // generate a block in the secondary calculator with 4 rows:
-  // - Prorated Premium, Policy Fee, Broker Fee, Prorated Tax.
-  // Each row has columns: Amount ($), Down Payment %, Down Payment $.
-  // Broker Fee is prefilled from general input Total Broker Fee.
-  // Prorated Tax is prefilled from row.dataset.proratedTax.
+  // For each coverage row (from main calculator) that has a premium,
+  // generate a block with a table (4 rows, 3 columns):
+  // Column 1: Line Item (Prorated Premium, Policy Fee, Broker Fee, Prorated Tax)
+  // Column 2: Amount ($) – auto-filled (editable if desired)
+  // Column 3: Down Payment – contains two inline inputs: one for % and one for $.
   function populateSecondaryCalculator() {
     const secContainer = document.getElementById("secondaryBlocks");
     secContainer.innerHTML = "";
@@ -208,8 +207,11 @@ document.addEventListener("DOMContentLoaded", function () {
       let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
       if (premium <= 0) return; // only for rows with premium
       const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
+      
+      // Retrieve extra data from dataset (set in main calculation)
       let proratedPremium = row.dataset.proratedPremium || "0.00";
       let policyFee = row.dataset.policyFee || "0.00";
+      // Broker Fee is prefilled from general input "Total Broker Fee"
       let brokerFee = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
       let proratedTax = row.dataset.proratedTax || "0.00";
       
@@ -221,34 +223,49 @@ document.addEventListener("DOMContentLoaded", function () {
               <tr>
                 <th>Line Item</th>
                 <th>Amount ($)</th>
-                <th>Down Payment %</th>
-                <th>Down Payment $</th>
+                <th>Down Payment (% / $)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>Prorated Premium</td>
                 <td><input type="text" class="sec-amount sec-proratedPremium" value="${proratedPremium}" /></td>
-                <td><input type="text" class="sec-dpPct sec-dpPct-proratedPremium" value="0" /></td>
-                <td><input type="text" class="sec-dpAmt sec-dpAmt-proratedPremium" value="0" /></td>
+                <td class="downPaymentCell">
+                  <div class="dpContainer">
+                    <input type="text" class="sec-dpPct sec-dpPct-proratedPremium" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpAmt sec-dpAmt-proratedPremium" value="0" placeholder="$" />
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td>Policy Fee</td>
                 <td><input type="text" class="sec-amount sec-policyFee" value="${policyFee}" /></td>
-                <td><input type="text" class="sec-dpPct sec-dpPct-policyFee" value="0" /></td>
-                <td><input type="text" class="sec-dpAmt sec-dpAmt-policyFee" value="0" /></td>
+                <td class="downPaymentCell">
+                  <div class="dpContainer">
+                    <input type="text" class="sec-dpPct sec-dpPct-policyFee" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpAmt sec-dpAmt-policyFee" value="0" placeholder="$" />
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td>Broker Fee</td>
                 <td><input type="text" class="sec-amount sec-brokerFee" value="${brokerFee.toFixed(2)}" /></td>
-                <td><input type="text" class="sec-dpPct sec-dpPct-broker" value="0" /></td>
-                <td><input type="text" class="sec-dpAmt sec-dpAmt-broker" value="0" /></td>
+                <td class="downPaymentCell">
+                  <div class="dpContainer">
+                    <input type="text" class="sec-dpPct sec-dpPct-broker" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpAmt sec-dpAmt-broker" value="0" placeholder="$" />
+                  </div>
+                </td>
               </tr>
               <tr>
                 <td>Prorated Tax</td>
                 <td><input type="text" class="sec-amount sec-proratedTax" value="${proratedTax}" /></td>
-                <td><input type="text" class="sec-dpPct sec-dpPct-tax" value="0" /></td>
-                <td><input type="text" class="sec-dpAmt sec-dpAmt-tax" value="0" /></td>
+                <td class="downPaymentCell">
+                  <div class="dpContainer">
+                    <input type="text" class="sec-dpPct sec-dpPct-tax" value="0" placeholder="%" />
+                    <input type="text" class="sec-dpAmt sec-dpAmt-tax" value="0" placeholder="$" />
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -260,7 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (secContainer.innerHTML.trim() !== "") {
       document.getElementById("secondaryCalculator").style.display = "block";
     }
-    // Attach event listeners for "Calculate DP" buttons
+    // Attach event listeners for each "Calculate DP" button in secondary calculator blocks
     document.querySelectorAll(".sec-calcDP").forEach(btn => {
       btn.addEventListener("click", function () {
         const block = this.closest(".secondary-block");
