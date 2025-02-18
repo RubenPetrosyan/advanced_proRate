@@ -10,7 +10,7 @@
   <div class="container">
     <h1>Truck Insurance ProRate Calculator</h1>
 
-    <!-- General Fields (remain unchanged) -->
+    <!-- General Fields (Main Calculator) -->
     <div class="general-fields">
       <label>
         CLIENT:
@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <!-- Main Coverage Table (unchanged columns as per previous version) -->
+    <!-- Main Coverage Table (Main Calculator) -->
     <div class="table-wrapper">
       <table>
         <thead>
@@ -208,22 +208,8 @@
     <!-- Secondary Calculator Section -->
     <div id="secondaryCalculator" style="display:none; margin-top:20px;">
       <h2>Secondary Calculator</h2>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Coverage</th>
-              <th>Broker Fee Amount</th>
-              <th>Prorated Tax Amount</th>
-              <th>DownPayment %</th>
-              <th>DownPayment $</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="secondaryContainer">
-            <!-- Rows will be populated dynamically after Main Calculator is run -->
-          </tbody>
-        </table>
+      <div id="secondaryBlocks">
+        <!-- For each coverage (with premium) a block will be generated -->
       </div>
     </div>
 
