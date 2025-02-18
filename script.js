@@ -220,12 +220,27 @@ function stripNonNumeric(str) {
 
 function setupNumericFields() {
   document.querySelectorAll(".dollar-input, .percent-input, .numPay-input").forEach(input => {
-    // A) On input: allow only digits and a single dot
+    // A) On input: allow only digits and a single dot.
+    // For percent inputs, also clamp the value to the 0–100 range as the user types.
     input.addEventListener("input", function() {
       let raw = stripNonNumeric(this.value);
       const parts = raw.split(".");
       if (parts.length > 2) {
         raw = parts[0] + "." + parts.slice(1).join("");
+      }
+      if (this.classList.contains("percent-input")) {
+        let num = parseFloat(raw);
+        if (!isNaN(num)) {
+          if (num > 100) {
+            raw = "100";
+            showError(this, "Percentage cannot be more than 100. Auto-correcting to 100.");
+          } else if (num < 0) {
+            raw = "0";
+            showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
+          } else {
+            clearError(this);
+          }
+        }
       }
       this.value = raw;
     });
@@ -244,7 +259,7 @@ function setupNumericFields() {
       if (this.classList.contains("dollar-input")) {
         this.value = num.toFixed(2);
       }
-      // For percent inputs, enforce that the value is between 0 and 100.
+      // For percent inputs, ensure the value is between 0 and 100.
       else if (this.classList.contains("percent-input")) {
         if (num < 0) {
           showError(this, "Percentage cannot be less than 0. Auto-correcting to 0.");
