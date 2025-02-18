@@ -96,6 +96,22 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function calculateProRatedAmounts() {
+  // SAFEGUARD: Clamp all percent inputs to 0–100 in case any are out-of-range (e.g., if they haven't lost focus)
+  document.querySelectorAll(".percent-input").forEach(input => {
+    let num = parseFloat(stripNonNumeric(input.value));
+    if (isNaN(num)) num = 0;
+    if (num < 0) {
+      num = 0;
+      showError(input, "Percentage cannot be less than 0. Auto-correcting to 0.");
+    } else if (num > 100) {
+      num = 100;
+      showError(input, "Percentage cannot be more than 100. Auto-correcting to 100.");
+    } else {
+      clearError(input);
+    }
+    input.value = num.toFixed(2);
+  });
+
   // Prevent calculation if any validation errors exist
   const errorElements = document.querySelectorAll(".error-message");
   for (let err of errorElements) {
