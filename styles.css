@@ -118,17 +118,15 @@ button:hover {
   background-color: #007bff;
   color: #fff;
 }
-/* Here we define 3 columns: 
-   Column 1: Line Item, Column 2: Amount ($), Column 3: Down Payment (% / $) */
-.secondary-block td.downPaymentCell {
+.downPaymentCell {
   text-align: center;
 }
-.secondary-block .dpContainer {
+.dpContainer {
   display: flex;
   justify-content: center;
   gap: 5px;
 }
-.secondary-block .dpContainer input {
+.dpContainer input {
   width: 45%;
   padding: 3px;
   text-align: right;
