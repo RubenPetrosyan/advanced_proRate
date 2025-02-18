@@ -7,7 +7,8 @@ body {
 }
 
 .container {
-    max-width: 90%;
+    width: 100%;
+    max-width: 1200px;
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -33,11 +34,44 @@ h1 {
     flex-direction: column;
     margin-right: 10px;
     margin-bottom: 10px;
+    flex: 1 1 200px;
 }
 
+/* Payment Status Toggle */
+.payment-status-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    flex: 1 1 200px;
+}
+.payment-status-label {
+    font-weight: bold;
+    margin-right: 10px;
+    white-space: nowrap;
+}
+.payment-status {
+    display: inline-flex;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.payment-status input[type="radio"] {
+    display: none;
+}
 .payment-status label {
-    font-weight: normal;
-    margin-right: 5px;
+    padding: 8px 16px;
+    margin: 0;
+    cursor: pointer;
+    background-color: #f9f9f9;
+    color: #333;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.payment-status label:hover {
+    background-color: #e6e6e6;
+}
+.payment-status input[type="radio"]:checked + label {
+    background-color: #28a745;
+    color: #fff;
 }
 
 /* Table Wrapper for responsiveness */
@@ -51,7 +85,7 @@ table {
     border-collapse: collapse;
     background: white;
     border-radius: 5px;
-    min-width: 800px; /* Ensure table has a minimum width for all columns */
+    min-width: 900px; /* Ensures all columns display properly */
 }
 
 thead {
@@ -84,15 +118,13 @@ input {
   background-color: #f2f2f2;
   border-radius: 10px;
 }
-
 .result-column {
   flex: 1;
+  min-width: 200px;
   display: flex;
   flex-direction: column;
   gap: 15px;
-  min-width: 200px;
 }
-
 .result-cell {
   background-color: #ffffff;
   padding: 10px;
@@ -101,14 +133,12 @@ input {
   text-align: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
 .result-cell strong {
   display: block;
   margin-bottom: 5px;
   color: #007bff;
   font-size: 16px;
 }
-
 .result-cell span {
   font-weight: bold;
   font-size: 20px;
@@ -130,23 +160,30 @@ input {
   transition: background 0.3s ease, transform 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
 #calculateBtn:hover {
   background: linear-gradient(45deg, #218838, #1e7e34);
   transform: scale(1.05);
 }
 
-/* Media Queries for Smaller Screens */
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .container {
+    padding: 15px;
+  }
+  table {
+    min-width: 800px;
+  }
+}
+
 @media (max-width: 768px) {
   .general-fields {
     flex-direction: column;
   }
-
-  .general-fields label {
+  .general-fields label,
+  .payment-status-group {
     width: 100%;
     margin-right: 0;
   }
-
   .result-column {
     min-width: 100%;
   }
@@ -157,8 +194,10 @@ input {
     padding: 8px;
     font-size: 14px;
   }
-
   input {
+    width: 100%;
+  }
+  #calculateBtn {
     width: 100%;
   }
 }
