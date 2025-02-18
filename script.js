@@ -214,6 +214,98 @@ document.addEventListener("DOMContentLoaded", function () {
     setupCarrierTaxBidirectional(row);
   });
 
+  // ------------------- EXTRA RESULTS SECTION -------------------
+  // This container (in index.html) will display extra input fields for each coverage (only if premium > 0)
+  // The extra fields per coverage are: 
+  //    - Prorated Premium, Policy Fee, Broker Fee, Prorated Tax
+  // Each with Down Payment % and Down Payment Amount.
+  function populateExtraResults() {
+    const extraContainer = document.getElementById("extraResultsContainer");
+    extraContainer.innerHTML = ""; // clear previous content
+
+    const coverageRows = document.querySelectorAll(".coverage-row");
+    coverageRows.forEach(row => {
+      const premiumField = row.querySelector(".premium");
+      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      if (premium <= 0) return; // only for rows with premium
+
+      // Retrieve calculated values from result fields in the main table:
+      // For this example, we assume the following:
+      // - Prorated Premium = (calculated prorated premium) --> We recalc here
+      // - Policy Fee = value from carrierFee field
+      // - Broker Fee = value from proratedBrokerFee field (calculated earlier)
+      // - Prorated Tax = value from proratedTax field
+      const effVal = row.querySelector(".effectiveDate")?.value;
+      const expVal = row.querySelector(".expirationDate")?.value;
+      const endVal = row.querySelector(".endorsementDate")?.value;
+      let effDate = new Date(effVal || "");
+      let expDate = new Date(expVal || "");
+      let endDate = new Date(endVal || "");
+      if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) return;
+      let totalDays = daysBetween(effDate, expDate);
+      let remainDays = daysBetween(endDate, expDate);
+      if (totalDays <= 0) return;
+
+      let basePremium = premium; // from main table
+      let proratedPremium = (basePremium / totalDays) * remainDays;
+      let feeField = row.querySelector(".carrierFee");
+      let policyFee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
+      let proratedTaxField = row.querySelector(".proratedTax");
+      let proratedTax = proratedTaxField ? parseFloat(stripNonNumeric(proratedTaxField.value)) || 0 : 0;
+      let brokerFeeField = row.querySelector(".proratedBrokerFee");
+      let brokerFee = brokerFeeField ? parseFloat(stripNonNumeric(brokerFeeField.value)) || 0 : 0;
+
+      // Build HTML block for this coverage:
+      const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
+      let html = `
+        <div class="extra-result-row">
+          <h3>${coverageName} - Detailed Results</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Line Item</th>
+                <th>Amount ($)</th>
+                <th>Down Payment %</th>
+                <th>Down Payment $</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prorated Premium</td>
+                <td><input type="text" class="extra-amount" value="${proratedPremium.toFixed(2)}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Policy Fee</td>
+                <td><input type="text" class="extra-amount" value="${policyFee.toFixed(2)}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Broker Fee</td>
+                <td><input type="text" class="extra-amount" value="${brokerFee.toFixed(2)}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Prorated Tax</td>
+                <td><input type="text" class="extra-amount" value="${proratedTax.toFixed(2)}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+      extraContainer.innerHTML += html;
+    });
+    // Show the extra results container if any block was added.
+    if (extraContainer.innerHTML.trim() !== "") {
+      extraContainer.style.display = "block";
+    }
+  }
+
   // ------------------- MAIN CALCULATION FUNCTION -------------------
   function calculateProRatedAmounts() {
     // Validate Payment Status
@@ -222,9 +314,6 @@ document.addEventListener("DOMContentLoaded", function () {
       alert("Error: Client has not completed payments. Proration cannot be calculated.");
       return;
     }
-
-    // Hide any Totals section if present (now removed from UI)
-    // document.getElementById("totalResults").style.display = "none";
 
     // Clamp all percent inputs & check for errors
     document.querySelectorAll(".percent-input").forEach(input => {
@@ -249,7 +338,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    // Initialize totals (we still use these internally for per row calculations)
+    // Initialize totals (used internally for per-row calculations)
     let coverageSum = 0;
     let totalDownPaymentDollar = 0;
     const totalB = parseFloat(stripNonNumeric(document.getElementById("totalBrokerFee").value)) || 0;
@@ -260,22 +349,21 @@ document.addEventListener("DOMContentLoaded", function () {
     // Process each coverage row
     const coverageRows = document.querySelectorAll(".coverage-row");
     coverageRows.forEach(row => {
-      const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
+      const premiumField = row.querySelector(".premium");
+      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
       const tivField = row.querySelector(".tiv");
       const rateField = row.querySelector(".rate");
-      const premiumField = row.querySelector(".premium");
-      const taxPctField = row.querySelector(".carrierTax");
-      const feeField = row.querySelector(".carrierFee");
-      const commissionPctField = row.querySelector(".commissionPct");
-      const downPayDollarField = row.querySelector(".downPayDollar");
-
-      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
       if (tivField && tivField.style.display !== "none") {
         let tiv = parseFloat(stripNonNumeric(tivField.value)) || 0;
         let rate = parseFloat(stripNonNumeric(rateField?.value)) || 0;
         premium = tiv * (rate / 100);
       }
-      if (premium <= 0) return;
+      if (premium <= 0) return; // process only rows with a premium
+
+      const taxPctField = row.querySelector(".carrierTax");
+      const feeField = row.querySelector(".carrierFee");
+      const commissionPctField = row.querySelector(".commissionPct");
+      const downPayDollarField = row.querySelector(".downPayDollar");
 
       const taxPct = taxPctField ? parseFloat(stripNonNumeric(taxPctField.value)) || 0 : 0;
       const fee = feeField ? parseFloat(stripNonNumeric(feeField.value)) || 0 : 0;
@@ -289,7 +377,6 @@ document.addEventListener("DOMContentLoaded", function () {
       let expDate = new Date(expVal || "");
       let endDate = new Date(endVal || "");
       if (isNaN(effDate) || isNaN(expDate) || isNaN(endDate)) return;
-
       let totalDays = daysBetween(effDate, expDate);
       let remainDays = daysBetween(endDate, expDate);
       if (totalDays <= 0) return;
@@ -304,15 +391,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const finalAmtField = row.querySelector(".finalAmt");
       const proratedTaxField = row.querySelector(".proratedTax");
-      const proratedBrokerFeeField = row.querySelector(".proratedBrokerFee");
       const commissionDollarField = row.querySelector(".commissionDollar");
 
       if (finalAmtField) finalAmtField.value = "$" + finalAmt.toFixed(2);
       if (proratedTaxField) proratedTaxField.value = "$" + proratedCarrierTax.toFixed(2);
       if (commissionDollarField) commissionDollarField.value = "$" + commissionDollar.toFixed(2);
+
+      // Store extra results for this row in a data attribute (or push into an array)
+      row.dataset.proratedPremium = proratedPremium.toFixed(2);
+      row.dataset.policyFee = fee.toFixed(2);
+      row.dataset.brokerFee = ""; // We'll allocate later
+      row.dataset.proratedTax = proratedCarrierTax.toFixed(2);
+      // We'll compute broker fee allocation in a separate loop.
     });
 
-    // Allocate prorated broker fee for each row
+    // Allocate prorated broker fee per row (if multiple rows, proportional to finalAmt)
     coverageRows.forEach(row => {
       let finalAmtField = row.querySelector(".finalAmt");
       if (!finalAmtField || finalAmtField.value === "") return;
@@ -324,32 +417,73 @@ document.addEventListener("DOMContentLoaded", function () {
       let proratedBrokerFeeField = row.querySelector(".proratedBrokerFee");
       if (proratedBrokerFeeField)
         proratedBrokerFeeField.value = "$" + proratedBrokerFee.toFixed(2);
+      // Save in dataset for extra results:
+      row.dataset.brokerFee = proratedBrokerFee.toFixed(2);
     });
 
-    // Update Financed Amount and Monthly Payment calculations (if needed)
-    let financedAmt = 0;
-    if (totalDownPaymentDollar >= coverageSum) {
-      financedAmt = 0;
-    } else {
-      financedAmt = (coverageSum - totalDownPaymentDollar) + finB;
-      if (financedAmt < 0) financedAmt = 0;
-    }
-    // Update monthly payment calculation
-    let aprRaw = parseFloat(stripNonNumeric(document.getElementById("apr").value)) || 0;
-    let nPays = parseInt(stripNonNumeric(document.getElementById("numPayments").value)) || 1;
-    if (nPays < 1) nPays = 1;
-    if (nPays > 10) nPays = 10;
+    // (Financed and Monthly Payment calculations removed as per earlier removal)
 
-    let monthlyPay = 0;
-    if (aprRaw === 0) {
-      monthlyPay = financedAmt / nPays;
-    } else {
-      let monthlyRate = (aprRaw / 100) / 12;
-      monthlyPay = (monthlyRate * financedAmt) / (1 - Math.pow(1 + monthlyRate, -nPays));
-    }
-    document.getElementById("monthlyPayment").innerText = "$" + monthlyPay.toFixed(2);
+    // ------------------- EXTRA DETAILED RESULTS -------------------
+    // Build extra results for each coverage row that had a premium.
+    const extraContainer = document.getElementById("extraResultsContainer");
+    extraContainer.innerHTML = ""; // clear previous extra results
+    coverageRows.forEach(row => {
+      const premiumField = row.querySelector(".premium");
+      let premium = parseFloat(stripNonNumeric(premiumField?.value)) || 0;
+      if (premium <= 0) return; // only for rows with a premium
 
-    // Note: Totals section UI is removed.
+      const coverageName = row.querySelector("td:first-child")?.innerText.trim() || "Unknown Coverage";
+      const extraProratedPremium = row.dataset.proratedPremium || "0.00";
+      const extraPolicyFee = row.dataset.policyFee || "0.00";
+      const extraBrokerFee = row.dataset.brokerFee || "0.00";
+      const extraProratedTax = row.dataset.proratedTax || "0.00";
+
+      let extraHtml = `
+        <div class="extra-result-row">
+          <h3>${coverageName} - Detailed Results</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Line Item</th>
+                <th>Amount ($)</th>
+                <th>Down Payment %</th>
+                <th>Down Payment $</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prorated Premium</td>
+                <td><input type="text" class="extra-amount" value="${extraProratedPremium}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Policy Fee</td>
+                <td><input type="text" class="extra-amount" value="${extraPolicyFee}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Broker Fee</td>
+                <td><input type="text" class="extra-amount" value="${extraBrokerFee}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+              <tr>
+                <td>Prorated Tax</td>
+                <td><input type="text" class="extra-amount" value="${extraProratedTax}" readonly /></td>
+                <td><input type="text" class="extra-dpPct" value="0" /></td>
+                <td><input type="text" class="extra-dpAmt" value="0" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+      extraContainer.innerHTML += extraHtml;
+    });
+    if (extraContainer.innerHTML.trim() !== "") {
+      extraContainer.style.display = "block";
+    }
   }
 
   // ------------------- EVENT LISTENERS -------------------
