@@ -580,12 +580,12 @@ document.addEventListener("DOMContentLoaded", function () {
           <thead>
             <tr>
               <th class="lineName">Line Item</th>
-              <th>Premium Amount</th>
-              <th>Down Payment %</th>
-              <th>Down Payment</th>
+              <th>Amount</th>
+              <th>Down Pay.%</th>
+              <th>Down Pay. $</th>
               <th>Amount Financed</th>
-              <th>Pay: Producer</th>
-              <th>Pay: Gen Agent</th>
+              <th>Pay Producer</th>
+              <th>Pay GenAgent</th>
             </tr>
           </thead>
           <tbody>
