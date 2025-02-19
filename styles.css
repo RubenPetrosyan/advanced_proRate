@@ -31,12 +31,27 @@ h1 {
   flex: 1 1 200px;
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 .payment-status-label {
-  margin-right: 10px;
+  font-weight: bold;
 }
-.payment-status label {
-  margin-right: 10px;
+.payment-status {
+  display: flex;
+  gap: 10px;
+}
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background-color: #e7f3ff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.radio-label input {
+  cursor: pointer;
 }
 .table-wrapper {
   overflow-x: auto;
@@ -107,6 +122,7 @@ button:hover {
 .secondary-block table {
   width: 100%;
   border-collapse: collapse;
+  margin-bottom: 10px;
 }
 .secondary-block th,
 .secondary-block td {
