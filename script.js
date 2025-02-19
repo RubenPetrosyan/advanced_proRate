@@ -310,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </tbody>
           </table>
 
-          <button class="sec-calcDP">Calculate DP</button>
+          <button class="sec-calcDP">Calculate</button>
         </div>
       `;
       secContainer.innerHTML += blockHtml;
